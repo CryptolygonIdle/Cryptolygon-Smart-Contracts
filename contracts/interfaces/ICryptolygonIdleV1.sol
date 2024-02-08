@@ -75,6 +75,11 @@ interface ICryptolygonIdleV1 {
     // Errors
 
     /**
+     * @dev Error thrown when the arguments are invalid.
+     */
+    error InvalidArguments();
+
+    /**
      * @dev Error thrown when leveling up a polygon is not allowed.
      * @param polygonId The ID of the polygon.
      * @param amountOfLevels The number of levels requested.
@@ -150,7 +155,7 @@ interface ICryptolygonIdleV1 {
     function ascend() external receive returns();
 
     /**
-     * @dev Function to tip the contract owner.
+     * @dev Function to tip the contract owner. Thanks for the support!
      */
     function tip() external payable returns();
 
