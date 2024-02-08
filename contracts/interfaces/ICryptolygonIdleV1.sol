@@ -9,7 +9,6 @@ import "../libraries/BigNumber.sol";
  */
 interface ICryptolygonIdleV1 {
     
-
     // Structs
 
     /**
@@ -129,21 +128,21 @@ interface ICryptolygonIdleV1 {
      * @param polygonIds List of polygon ids to level up.
      * @param amounts List of amounts to level up the polygons.
      */
-    function levelUpPolygons(uint256[] memory polygonIds, uint256[] memory amounts) external returns();
+    function levelUpPolygons(uint256[] calldata polygonIds, uint256[] calldata amounts) external returns();
 
     /**
      * @dev Function to buy upgrades in batch.
      * @param upgradeIds List of upgrade ids to buy.
      * @param amounts List of amounts to buy the upgrades.
      */
-    function buyUpgrades(uint256[] memory upgradeIds, uint256[] memory amounts) external returns();
+    function buyUpgrades(uint256[] calldata upgradeIds, uint256[] calldata amounts) external returns();
 
     /**
      * @dev Function to buy ascension perks in batch.
      * @param perkIds List of perk ids to buy.
      * @param amounts List of amounts to buy the ascension perks.
      */
-    function buyAscensionPerks(uint256[] memory perkIds, uint256[] memory amounts) external returns();
+    function buyAscensionPerks(uint256[] calldata perkIds, uint256[] calldata amounts) external returns();
 
     /**
      * @dev Function to perform an ascension.
