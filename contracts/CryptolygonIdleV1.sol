@@ -296,6 +296,38 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
      * - The player must have enough lines to buy the upgrade.
      */
     function _buyUpgrade(uint256 upgradeId, uint256 amount) internal {
+        // Check if the upgrade can be bought
+        if (upgradeId == 0 || amount == 0) {
+            revert UpgradeNotAllowed(upgradeId, amount);
+        }
+
+        PlayerDataV1 memory playerData = playersData[msg.sender];
+
+        // Check if the player has unlocked the previous upgrade
+        if (upgradeId > 1 && playerData.levelOfUpgrades[upgradeId - 1] == 0) {
+            revert UpgradeNotAllowed(upgradeId, amount);
+        }
+
+        // Compute the cost of buying the upgrade
+        BigNumber memory cost = BigNumbers.init(0, false);
+
+        for (uint256 i = 0; i < amount; i++) {
+            cost = cost.add(BigNumbers.init(upgradeId**upgradeId, false).mul(BigNumbers.init(playerData.levelOfUpgrades[upgradeId], false)));
+        }
+
+        // Check if the player has enough lines to buy the upgrade
+        if (playerData.linesLastUpdate.lt(cost)) {
+            revert NotEnoughLinesToBuyUpgrade(upgradeId, amount);
+        }
+
+        // Consume the lines
+        playersData[msg.sender].linesLastUpdate = playerData.linesLastUpdate.sub(cost);
+
+        // Buy the upgrade
+        playersData[msg.sender].levelOfUpgrades[upgradeId] = playerData.levelOfUpgrades[upgradeId] + (amount);
+
+        // Emit the UpgradeBought event
+        emit UpgradeBought(msg.sender, upgradeId, amount);
     }
 
     /**
@@ -308,6 +340,34 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
      * - The player must have enough circles to buy the ascension perk.
      */
     function _buyAscensionPerk(uint256 perkId, uint256 amount) internal {
+        // Check if the ascension perk can be bought
+        if (perkId == 0 || amount == 0) {
+            revert AscensionPerkNotAllowed(perkId, amount);
+        }
+
+        PlayerDataV1 memory playerData = playersData[msg.sender];
+
+        // Check if the player has unlocked the previous ascension perk
+        if (perkId > 1 && playerData.levelOfAscensionPerks[perkId - 1] == 0) {
+            revert AscensionPerkNotAllowed(perkId, amount);
+        }
+
+        // Compute the cost of buying the ascension perk
+        uint256 cost = perkId**perkId * (playerData.levelOfAscensionPerks[perkId] + 1) * amount;
+
+        // Check if the player has enough circles to buy the ascension perk
+        if (CIRCLE.balanceOf(msg.sender) < cost) {
+            revert NotEnoughCirclesToBuyPerk(perkId, amount);
+        }
+
+        // Consume the circles
+        CIRCLE.transferFrom(msg.sender, address(this), cost);
+
+        // Buy the ascension perk
+        playersData[msg.sender].levelOfAscensionPerks[perkId] = playerData.levelOfAscensionPerks[perkId] + (amount);
+
+        // Emit the AscensionPerkBought event
+        emit AscensionPerkBought(msg.sender, perkId, amount);
     }
 
     /**
