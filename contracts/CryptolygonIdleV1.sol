@@ -122,6 +122,38 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
      * @inheritdoc ICryptolygonIdleV1
      */
     function _updatePlayerData() internal {
+        memory PlayerDataV1 storage playerData = playersData[msg.sender];
+        playersData[msg.sender].lastUpdateTime = block.timestamp;
+
+        // Compute the player's lines per second
+        BigNumber memory linesPerSecond = BigNumber.init(0, false);
+
+        for (uint256 i = 1; i < playerData.levelOfPolygons.length - 1; i++) {
+            uint256 basePolygonLinesPerSecond = 2**i;
+
+            uint256 polygonLevel = playerData.levelOfPolygons[i];
+            uint256 polygonLevelMultiplier = (1 + 2*(polygonLevel/50)) * (1 + 5*(polygonLevel/500));
+
+            uint256 normalUpgradesMultiplier = 1;
+
+            uint256 ascensionUpgradesMultiplier = 1;
+
+            BigNumber memory polygonLinesPerSecond = BigNumber.init(basePolygonLinesPerSecond, false)
+                .mul(BigNumber.init(polygonLevel, false))
+                .mul(BigNumber.init(polygonLevelMultiplier, false))
+                .mul(BigNumber.init(normalUpgradesMultiplier, false))
+                .mul(BigNumber.init(ascensionUpgradesMultiplier, false));
+
+            linesPerSecond = linesPerSecond.add(polygonLinesPerSecond);
+        }
+
+        // Compute the player's lines
+        uint256 timePassed = block.timestamp - playerData.lastUpdateTime;
+        BigNumber memory newLinesSinceLastUpdate = linesPerSecond.mul(BigNumber.init(timePassed, false));
+
+        // Update the player's data
+        playersData[msg.sender].linesLastUpdate = playerData.lines.add(newLinesSinceLastUpdate);
+        playersData[msg.sender].totalLines = playerData.totalLines.add(newLinesSinceLastUpdate);
     }
 
 }
