@@ -2,13 +2,13 @@
 pragma solidity ^0.8.20;
 
 import "./interfaces/ICryptolygonIdleV1.sol";
+import "./interfaces/ICircle.sol";
 
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @custom:security-contact
 contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
@@ -16,7 +16,7 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
 
     mapping(address => PlayerDataV1) public playersData;
 
-    IERC20 constant public CIRCLE = IERC20(address(0));
+    ICircle constant public CIRCLE = ICircle(address(0));
 
     // Errors
 
@@ -108,6 +108,14 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
         if (polygonIds.length != amounts.length || polygonIds.length == 0) {
             revert InvalidArguments();
         }
+        _updatePlayerData();
+
+        for (uint256 i = 0; i < polygonIds.length; i++) {
+            uint256 polygonId = polygonIds[i];
+            uint256 amount = amounts[i];
+
+            _levelUpPolygon(polygonId, amount);
+        }
     }
 
     /**
@@ -116,6 +124,14 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
     function buyUpgrades(uint256[] calldata upgradeIds, uint256[] calldata amounts) external {
         if (upgradeIds.length != amounts.length || upgradeIds.length == 0) {
             revert InvalidArguments();
+        }
+        _updatePlayerData();
+
+        for (uint256 i = 0; i < upgradeIds.length; i++) {
+            uint256 upgradeId = upgradeIds[i];
+            uint256 amount = amounts[i];
+
+            _buyUpgrade(upgradeId, amount);
         }
     }
 
@@ -126,12 +142,46 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
         if (perkIds.length != amounts.length || perkIds.length == 0) {
             revert InvalidArguments();
         }
+        _updatePlayerData();
+
+        for (uint256 i = 0; i < perkIds.length; i++) {
+            uint256 perkId = perkIds[i];
+            uint256 amount = amounts[i];
+
+            _buyAscensionPerk(perkId, amount);
+        }
     }
 
     /**
      * @inheritdoc ICryptolygonIdleV1
      */
     function ascend() external {
+        _updatePlayerData();
+
+        PlayerDataV1 memory playerData = playersData[msg.sender];
+
+        // Reset the player's data
+        uint256[] memory emptyArray1;
+        playersData[msg.sender].levelOfPolygons = emptyArray1;
+
+        uint256[] memory emptyArray2;
+        playersData[msg.sender].levelOfUpgrades = emptyArray2;
+
+        uint256[] memory emptyArray3;
+        playersData[msg.sender].levelOfAscensionPerks = emptyArray3;
+
+        playersData[msg.sender].linesLastUpdate = BigNumbers.init(0, false);
+        playersData[msg.sender].numberOfAscensions = playerData.numberOfAscensions + 1;
+
+        // Emit the Ascended event
+        emit Ascended(msg.sender);
+
+        // Compute the number of circles to give to the player
+        uint256 circlesToGive = 0;
+
+        // Mint and give the player the circles
+        CIRCLE.mint(msg.sender, circlesToGive);
+
     }
 
     /**
