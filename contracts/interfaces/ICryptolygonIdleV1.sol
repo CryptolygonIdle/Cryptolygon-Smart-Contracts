@@ -25,7 +25,7 @@ interface ICryptolygonIdleV1 {
     struct PlayerDataV1 {
         uint256[] levelOfPolygons;
         uint256[] levelOfAscensionPerks;
-        uint256[] polygonsMultiplierUpgrades;
+        uint256[] levelOfUpgrades;
         uint256 timestampLastUpdate;
         BigNumber linesLastUpdate;
         BigNumber totalLines;
