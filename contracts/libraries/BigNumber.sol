@@ -435,6 +435,24 @@ library BigNumbers {
         
         return true;
     }
+
+    /** @notice logarithm base 2 of BigNumber value
+      * @dev log2: returns the log2 floor of a BigNumber value. 
+      *           log2 is the bit length of the value.
+      *           if the value is zero, the result is zero.
+      *           if the value is negative, the result is undefined.
+      *           if the value is positive, the result is the bit length of the value.
+      *
+      * @param a BigNumber
+      * @return r BigNumber result
+     * 
+     */
+    function log2(
+        BigNumber memory a
+    ) internal pure returns(uint256){
+        require(!a.neg && !isZero(a));
+        return uint256(bytes32(abi.encodePacked(bitLength(a)))) - 1;
+    }
     // ***************** END EXPOSED CORE CALCULATION FUNCTIONS ******************
 
 
