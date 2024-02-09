@@ -19,7 +19,8 @@ interface ICryptolygonIdleV1 {
      * @param polygonsMultiplierUpgrades: Array of the polygons multiplier upgrades for the player.
      * @param timestampLastUpdate: Timestamp of the last update for the player.
      * @param linesLastUpdate: BigNumber of the lines at the last update for the player.
-     * @param totalLines: Total number of lines for the player.
+     * @param totalLinesThisAscension: Total number of lines for the player this ascension.
+     * @param totalLinesPreviousAscensions: Total number of lines for the player in previous ascensions.
      * @param numberOfAscensions: Number of ascensions performed by the players.
      */
     struct PlayerDataV1 {
@@ -28,7 +29,8 @@ interface ICryptolygonIdleV1 {
         uint256[] levelOfUpgrades;
         uint256 timestampLastUpdate;
         BigNumber linesLastUpdate;
-        BigNumber totalLines;
+        BigNumber totalLinesThisAscension;
+        BigNumber totalLinesPreviousAscensions;
         uint256 numberOfAscensions;
     }
 
