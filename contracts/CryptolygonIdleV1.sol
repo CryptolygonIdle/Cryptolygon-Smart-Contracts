@@ -171,16 +171,21 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
         playersData[msg.sender].levelOfAscensionPerks = emptyArray3;
 
         playersData[msg.sender].linesLastUpdate = BigNumbers.init(0, false);
+        playersData[msg.sender].totalLinesThisAscension = BigNumbers.init(0, false);
+        playersData[msg.sender].totalLinesPreviousAscensions = playerData.totalLinesPreviousAscensions.add(playerData.totalLinesThisAscension);
         playersData[msg.sender].numberOfAscensions = playerData.numberOfAscensions + 1;
 
         // Emit the Ascended event
         emit Ascended(msg.sender);
 
         // Compute the number of circles to give to the player
-        uint256 circlesToGive = 0;
+        // Log2(totalLinesPreviousAscensions + totalLinesThisAscension) - Log2(totalLinesPreviousAscensions)
+        uint256 circlesToGive = BigNumbers.log2(playerData.totalLinesPreviousAscensions
+                                            .add(playerData.totalLinesThisAscension)) 
+                                            - (BigNumbers.log2(playerData.totalLinesPreviousAscensions));
 
         // Mint and give the player the circles
-        CIRCLE.mint(msg.sender, circlesToGive);
+        CIRCLE.mint(msg.sender, circlesToGive * 10**18);
 
     }
 
@@ -406,7 +411,7 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
 
         // Update the player's data
         playersData[msg.sender].linesLastUpdate = playerData.linesLastUpdate.add(newLinesSinceLastUpdate);
-        playersData[msg.sender].totalLines = playerData.totalLines.add(newLinesSinceLastUpdate);
+        playersData[msg.sender].totalLinesThisAscension = playerData.totalLinesThisAscension.add(newLinesSinceLastUpdate);
     }
 
 }
