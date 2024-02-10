@@ -14,7 +14,7 @@ interface ICryptolygonIdleV1 {
     /**
      * @dev PlayerDataV1 struct to store player data.
      * 
-     * @param levelOfPolygons: Array of the level of polygons owned by the player.
+     * @param levelOfPolygons: Array of the level of polygons owned by the player. 0 index is the total level of all polygons.
      * @param levelOfAscensionPerks: Array of the level of ascension perks for the player.
      * @param polygonsMultiplierUpgrades: Array of the polygons multiplier upgrades for the player.
      * @param timestampLastUpdate: Timestamp of the last update for the player.

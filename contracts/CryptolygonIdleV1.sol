@@ -285,6 +285,9 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
 
         // Level up the polygon
         playersData[msg.sender].levelOfPolygons[polygonId] = playerData.levelOfPolygons[polygonId] + (amount);
+        
+        // Level up the all polygons level
+        playersData[msg.sender].levelOfPolygons[0] = playerData.levelOfPolygons[0] + (amount);
 
         // Emit the PolygonLeveledUp event
         emit PolygonLeveledUp(msg.sender, polygonId, amount);
@@ -390,11 +393,12 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
             uint256 basePolygonLinesPerSecond = 2**i;
 
             uint256 polygonLevel = playerData.levelOfPolygons[i];
-            uint256 polygonLevelMultiplier = (1 + 2*(polygonLevel/50)) * (1 + 5*(polygonLevel/500));
+            uint256 totalPolygonLevel = playerData.levelOfPolygons[0];
+            uint256 polygonLevelMultiplier = (1 + 2*(polygonLevel/50)) * (1 + 5*(totalPolygonLevel/500));
 
-            uint256 normalUpgradesMultiplier = 1;
+            uint256 normalUpgradesMultiplier = 1 + playerData.levelOfUpgrades[0];
 
-            uint256 ascensionUpgradesMultiplier = 1;
+            uint256 ascensionUpgradesMultiplier = 1 + playerData.levelOfAscensionPerks[0];
 
             BigNumber memory polygonLinesPerSecond = BigNumbers.init(basePolygonLinesPerSecond, false)
                 .mul(BigNumbers.init(polygonLevel, false))
