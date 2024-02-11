@@ -104,7 +104,7 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
     /**
      * @inheritdoc ICryptolygonIdleV1
      */
-    function levelUpPolygons(uint256[] calldata polygonIds, uint256[] calldata amounts) external {
+    function levelUpPolygons(uint256[] calldata polygonIds, uint256[] calldata amounts) external whenNotPaused {
         if (polygonIds.length != amounts.length || polygonIds.length == 0) {
             revert InvalidArguments();
         }
@@ -121,7 +121,7 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
     /**
      * @inheritdoc ICryptolygonIdleV1
      */
-    function buyUpgrades(uint256[] calldata upgradeIds, uint256[] calldata amounts) external {
+    function buyUpgrades(uint256[] calldata upgradeIds, uint256[] calldata amounts) external whenNotPaused {
         if (upgradeIds.length != amounts.length || upgradeIds.length == 0) {
             revert InvalidArguments();
         }
@@ -138,7 +138,7 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
     /**
      * @inheritdoc ICryptolygonIdleV1
      */
-    function buyAscensionPerks(uint256[] calldata perkIds, uint256[] calldata amounts) external {
+    function buyAscensionPerks(uint256[] calldata perkIds, uint256[] calldata amounts) external  whenNotPaused {
         if (perkIds.length != amounts.length || perkIds.length == 0) {
             revert InvalidArguments();
         }
@@ -155,7 +155,7 @@ contract CryptolygonIdleV1 is ICryptolygonIdleV1, Initializable, PausableUpgrade
     /**
      * @inheritdoc ICryptolygonIdleV1
      */
-    function ascend() external {
+    function ascend() external whenNotPaused {
         _updatePlayerData();
 
         PlayerDataV1 memory playerData = playersData[msg.sender];
