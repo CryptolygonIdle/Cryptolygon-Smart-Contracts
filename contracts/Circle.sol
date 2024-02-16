@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/ICircle.sol";
 
-contract MyToken is ICircle, ERC20, ERC20Burnable, AccessControl  {
+contract Circle is ICircle, ERC20, ERC20Burnable, AccessControl  {
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
