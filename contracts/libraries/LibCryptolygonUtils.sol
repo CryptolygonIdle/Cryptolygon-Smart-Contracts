@@ -1,0 +1,73 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {AppStorage, PlayerDataV1} from "./AppStorage.sol";
+import "./BigNumber.sol";
+
+library LibCryptolygonUtils {
+    using BigNumbers for *;
+
+    /**
+     * @dev Emitted when player data is updated.
+     * @param player The address of the player.
+     * @param lines The number of lines.
+     * @param totalLines The total number of lines.
+     */
+    event PlayerDataUpdated(
+        address indexed player,
+        BigNumber lines,
+        BigNumber totalLines
+    );
+
+    function _updatePlayerData(AppStorage storage s) internal {
+        PlayerDataV1 memory playerData = s.playersData[msg.sender];
+        s.playersData[msg.sender].timestampLastUpdate = block.timestamp;
+
+        // Compute the player's lines per second
+        BigNumber memory linesPerSecond = BigNumbers.init(0, false);
+
+        for (uint256 i = 1; i < playerData.levelOfPolygons.length - 1; i++) {
+            uint256 basePolygonLinesPerSecond = 2 ** i;
+
+            uint256 polygonLevel = playerData.levelOfPolygons[i];
+            uint256 totalPolygonLevel = playerData.levelOfPolygons[0];
+            uint256 polygonLevelMultiplier = (1 + 2 * (polygonLevel / 50)) *
+                (1 + 5 * (totalPolygonLevel / 500));
+
+            uint256 normalUpgradesMultiplier = 1 +
+                playerData.levelOfUpgrades[0];
+
+            uint256 ascensionUpgradesMultiplier = 1 +
+                playerData.levelOfAscensionPerks[0];
+
+            BigNumber memory polygonLinesPerSecond = BigNumbers
+                .init(basePolygonLinesPerSecond, false)
+                .mul(BigNumbers.init(polygonLevel, false))
+                .mul(BigNumbers.init(polygonLevelMultiplier, false))
+                .mul(BigNumbers.init(normalUpgradesMultiplier, false))
+                .mul(BigNumbers.init(ascensionUpgradesMultiplier, false));
+
+            linesPerSecond = linesPerSecond.add(polygonLinesPerSecond);
+        }
+
+        // Compute the player's lines
+        uint256 timePassed = block.timestamp - playerData.timestampLastUpdate;
+        BigNumber memory newLinesSinceLastUpdate = linesPerSecond.mul(
+            BigNumbers.init(timePassed, false)
+        );
+
+        // Update the player's data
+        s.playersData[msg.sender].linesLastUpdate = playerData
+            .linesLastUpdate
+            .add(newLinesSinceLastUpdate);
+        s.playersData[msg.sender].totalLinesThisAscension = playerData
+            .totalLinesThisAscension
+            .add(newLinesSinceLastUpdate);
+
+        emit PlayerDataUpdated(
+            msg.sender,
+            playerData.linesLastUpdate.add(newLinesSinceLastUpdate),
+            playerData.totalLinesThisAscension
+        );
+    }
+}
