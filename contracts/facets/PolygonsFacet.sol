@@ -9,7 +9,7 @@ import "../interfaces/IPolygonsFacet.sol";
 contract PolygonsFacet is IPolygonsFacet {
     using LibCryptolygonUtils for *;
     using BigNumbers for *;
-    
+
     AppStorage internal s;
 
     function levelUpPolygons(
@@ -40,8 +40,8 @@ contract PolygonsFacet is IPolygonsFacet {
      */
     function _levelUpPolygon(uint256 polygonId, uint256 amount) internal {
         // Check if the polygon can be leveled up
-        if (polygonId == 0 || amount == 0) {
-            revert PolygonLevelUpNotAllowed(polygonId, amount);
+        if (amount == 0) {
+            revert InvalidArguments();
         }
 
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
