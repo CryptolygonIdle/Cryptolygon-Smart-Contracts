@@ -28,7 +28,42 @@ struct PlayerDataV1 {
     uint256 numberOfAscensions;
 }
 
+/**
+ * @dev PolygonDataV1 struct to store polygon data.
+ *
+ * @param baseCost: Base cost of the polygon.
+ * @param baseLinesPerSecond: Base lines per second of the polygon.
+ * @param costCoefficient2Decimals: Cost coefficient of the polygon written with 2 decimals. Cost is multiplied by this value for each level.
+ */
+struct PolygonPropertiesV1 {
+    uint256 baseCost;
+    uint256 baseLinesPerSecond;
+    uint256 costCoefficient2Decimals;
+}
+
+
+/**
+ * @dev UpgradePropertiesV1 struct to store upgrade data.
+ *
+ * @param baseCost: Base cost of the upgrade.
+ * @param baseEffect: Base effect of the upgrade.
+ * @param costCoefficient3Decimals: Cost coefficient of the upgrade. Cost is multiplied by this value for each level.
+ */
+struct UpgradePropertiesV1 {
+    uint256 baseCost;
+    uint256 baseEffect;
+    uint256 costCoefficient3Decimals;
+}
+
+struct AscensionPerkPropertiesV1 {
+    uint256 baseCost;
+    uint256 baseEffect;
+    uint256 costCoefficient3Decimals;
+}
+
 struct AppStorage {
-    mapping(address => PlayerDataV1)  playersData;
+    mapping(address => PlayerDataV1) playersData;
+    PolygonPropertiesV1[] polygonsProperties;
+    UpgradePropertiesV1[] upgradesProperties;
     ICircle CIRCLE;
 }
