@@ -35,14 +35,9 @@ contract AscensionFacet is IAscensionFacet {
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
 
         // Reset the player's data
-        uint256[] memory emptyArray1;
-        s.playersData[msg.sender].levelOfPolygons = emptyArray1;
-
-        uint256[] memory emptyArray2;
-        s.playersData[msg.sender].levelOfUpgrades = emptyArray2;
-
-        uint256[] memory emptyArray3;
-        s.playersData[msg.sender].levelOfAscensionPerks = emptyArray3;
+        delete s.playersData[msg.sender].levelOfPolygons;
+        delete s.playersData[msg.sender].levelOfUpgrades;
+        delete s.playersData[msg.sender].levelOfAscensionPerks;
 
         s.playersData[msg.sender].linesLastUpdate = BigNumbers.init(0, false);
         s.playersData[msg.sender].totalLinesThisAscension = BigNumbers.init(
