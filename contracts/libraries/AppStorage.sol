@@ -55,6 +55,13 @@ struct UpgradePropertiesV1 {
     uint256 costCoefficient3Decimals;
 }
 
+/**
+ * @dev AscensionPerkPropertiesV1 struct to store ascension perk data.
+ *
+ * @param baseCost: Base cost of the ascension perk.
+ * @param baseEffect: Base effect of the ascension perk.
+ * @param costCoefficient3Decimals: Cost coefficient of the ascension perk. Cost is multiplied by this value for each level.
+ */
 struct AscensionPerkPropertiesV1 {
     uint256 baseCost;
     uint256 baseEffect;
@@ -65,5 +72,6 @@ struct AppStorage {
     mapping(address => PlayerDataV1) playersData;
     PolygonPropertiesV1[] polygonsProperties;
     UpgradePropertiesV1[] upgradesProperties;
+    AscensionPerkPropertiesV1[] ascensionPerksProperties;
     ICircle CIRCLE;
 }
