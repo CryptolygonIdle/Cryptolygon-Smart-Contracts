@@ -46,11 +46,6 @@ contract UpgradesFacet is IUpgradesFacet {
 
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
 
-        // Check if the player has unlocked the previous upgrade
-        if (upgradeId > 1 && playerData.levelOfUpgrades[upgradeId - 1] == 0) {
-            revert UpgradeNotAllowed(upgradeId, amount);
-        }
-
         // Compute the cost of buying the upgrade
         // Cost = upgradeBaseCost * 2**upgradeCurrentLevel * (2**amountToBuy - 1)
         // 2 is the cost growth coefficient
