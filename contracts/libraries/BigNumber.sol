@@ -453,6 +453,40 @@ library BigNumbers {
         require(!a.neg && !isZero(a));
         return uint256(bytes32(abi.encodePacked(bitLength(a)))) - 1;
     }
+
+    /** @notice Divide a positive BigNumber by 2
+      * @dev div2: returns a BigNumber value divided by 2. 
+      *           This is achieved by shifting the value right by 1 bit.
+      *           if the value is zero, the result is zero.
+      *
+      * @param a BigNumber
+      * @return BigNumber result
+     * 
+     */
+    function div2(
+        BigNumber memory a
+    ) internal view returns(BigNumber memory){
+        require(!a.neg && !isZero(a));
+        return _shr(a, 1);
+    }
+
+    /** @notice Divide a positive BigNumber by 2 multiple times
+      * @dev div2multiple: returns a BigNumber value divided by 2 multiple times. 
+      *           This is achieved by shifting the value right by 'multiple' bits.
+      *           if the value is zero, the result is zero.
+      *
+      * @param a BigNumber
+      * @param numberOfDivisions number of times to divide by 2
+      * @return BigNumber result
+     * 
+     */
+    function div2multiple(
+        BigNumber memory a, 
+        uint256 numberOfDivisions
+    ) internal view returns(BigNumber memory){
+        require(!a.neg && !isZero(a));
+        return _shr(a, numberOfDivisions);
+    }
     // ***************** END EXPOSED CORE CALCULATION FUNCTIONS ******************
 
 
