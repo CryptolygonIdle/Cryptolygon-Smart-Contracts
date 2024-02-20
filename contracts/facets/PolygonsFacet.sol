@@ -40,7 +40,7 @@ contract PolygonsFacet is IPolygonsFacet {
      */
     function _levelUpPolygon(uint256 polygonId, uint256 amount) internal {
         // Check if the polygon can be leveled up
-        if (amount == 0) {
+        if (amount == 0 || polygonId == 0) {
             revert InvalidArguments();
         }
 
@@ -52,18 +52,11 @@ contract PolygonsFacet is IPolygonsFacet {
         }
 
         // Compute the cost of leveling up the polygon
-        BigNumber memory cost = BigNumbers.init(0, false);
-
-        for (uint256 i = 0; i < amount; i++) {
-            cost = cost.add(
-                BigNumbers.init(polygonId ** polygonId, false).mul(
-                    BigNumbers.init(
-                        playerData.levelOfPolygons[polygonId],
-                        false
-                    )
-                )
-            );
-        }
+        // Cost = polygonBaseCost * 2**polygonCurrentLevel * (2**amountToBuy - 1)
+        // 2 is the cost growth coefficient
+        BigNumber memory cost = BigNumbers.init(s.polygonsProperties[polygonId].baseCost, false)
+            .mul(BigNumbers.init(2, false).pow(playerData.levelOfPolygons[polygonId]))
+            .mul(BigNumbers.init(2, false).pow(amount).sub(BigNumbers.init(1, false)));
 
         // Check if the player has enough lines to level up the polygon
         if (playerData.linesLastUpdate.lt(cost)) {

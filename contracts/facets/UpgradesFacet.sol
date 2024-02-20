@@ -40,7 +40,7 @@ contract UpgradesFacet is IUpgradesFacet {
      */
     function _buyUpgrade(uint256 upgradeId, uint256 amount) internal {
         // Check if the upgrade can be bought
-        if (upgradeId == 0 || amount == 0) {
+        if (amount == 0) {
             revert UpgradeNotAllowed(upgradeId, amount);
         }
 
@@ -52,18 +52,11 @@ contract UpgradesFacet is IUpgradesFacet {
         }
 
         // Compute the cost of buying the upgrade
-        BigNumber memory cost = BigNumbers.init(0, false);
-
-        for (uint256 i = 0; i < amount; i++) {
-            cost = cost.add(
-                BigNumbers.init(upgradeId ** upgradeId, false).mul(
-                    BigNumbers.init(
-                        playerData.levelOfUpgrades[upgradeId],
-                        false
-                    )
-                )
-            );
-        }
+        // Cost = upgradeBaseCost * 2**upgradeCurrentLevel * (2**amountToBuy - 1)
+        // 2 is the cost growth coefficient
+        BigNumber memory cost = BigNumbers.init(s.upgradesProperties[upgradeId].baseCost, false)
+            .mul(BigNumbers.init(2, false).pow(playerData.levelOfUpgrades[upgradeId]))
+            .mul(BigNumbers.init(2, false).pow(amount).sub(BigNumbers.init(1, false)));
 
         // Check if the player has enough lines to buy the upgrade
         if (playerData.linesLastUpdate.lt(cost)) {
