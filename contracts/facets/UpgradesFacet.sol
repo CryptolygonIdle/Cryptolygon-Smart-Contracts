@@ -6,7 +6,7 @@ import "../libraries/LibCryptolygonUtils.sol";
 
 import "../interfaces/IUpgradesFacet.sol";
 
-contract UpgradFacet is IUpgradesFacet {
+contract UpgradesFacet is IUpgradesFacet {
     using LibCryptolygonUtils for *;
     using BigNumbers for *;
 
