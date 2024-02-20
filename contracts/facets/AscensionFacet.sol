@@ -39,7 +39,7 @@ contract AscensionFacet is IAscensionFacet {
         delete s.playersData[msg.sender].levelOfUpgrades;
         delete s.playersData[msg.sender].levelOfAscensionPerks;
 
-        s.playersData[msg.sender].linesLastUpdate = BigNumbers.init(0, false);
+        s.playersData[msg.sender].currentLines = BigNumbers.init(0, false);
         s.playersData[msg.sender].totalLinesThisAscension = BigNumbers.init(
             0,
             false

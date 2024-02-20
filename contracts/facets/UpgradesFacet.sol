@@ -59,13 +59,13 @@ contract UpgradesFacet is IUpgradesFacet {
             .mul(BigNumbers.init(2, false).pow(amount).sub(BigNumbers.init(1, false)));
 
         // Check if the player has enough lines to buy the upgrade
-        if (playerData.linesLastUpdate.lt(cost)) {
+        if (playerData.currentLines.lt(cost)) {
             revert NotEnoughLinesToBuyUpgrade(upgradeId, amount);
         }
 
         // Consume the lines
-        s.playersData[msg.sender].linesLastUpdate = playerData
-            .linesLastUpdate
+        s.playersData[msg.sender].currentLines = playerData
+            .currentLines
             .sub(cost);
 
         // Buy the upgrade

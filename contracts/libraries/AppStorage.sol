@@ -22,7 +22,7 @@ struct PlayerDataV1 {
     uint256[] levelOfAscensionPerks;
     uint256[] levelOfUpgrades;
     uint256 timestampLastUpdate;
-    BigNumber linesLastUpdate;
+    BigNumber currentLines;
     BigNumber totalLinesThisAscension;
     BigNumber totalLinesPreviousAscensions;
     uint256 numberOfAscensions;

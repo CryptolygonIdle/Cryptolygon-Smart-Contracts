@@ -59,13 +59,13 @@ contract PolygonsFacet is IPolygonsFacet {
             .mul(BigNumbers.init(2, false).pow(amount).sub(BigNumbers.init(1, false)));
 
         // Check if the player has enough lines to level up the polygon
-        if (playerData.linesLastUpdate.lt(cost)) {
+        if (playerData.currentLines.lt(cost)) {
             revert NotEnoughLinesToLevelUp(polygonId, amount);
         }
 
         // Consume the lines
-        s.playersData[msg.sender].linesLastUpdate = playerData
-            .linesLastUpdate
+        s.playersData[msg.sender].currentLines = playerData
+            .currentLines
             .sub(cost);
 
         // Level up the polygon
