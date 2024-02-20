@@ -33,12 +33,10 @@ struct PlayerDataV1 {
  *
  * @param baseCost: Base cost of the polygon.
  * @param baseLinesPerSecond: Base lines per second of the polygon.
- * @param costCoefficient2Decimals: Cost coefficient of the polygon written with 2 decimals. Cost is multiplied by this value for each level.
  */
 struct PolygonPropertiesV1 {
     uint256 baseCost;
     uint256 baseLinesPerSecond;
-    uint256 costCoefficient2Decimals;
 }
 
 
@@ -47,12 +45,10 @@ struct PolygonPropertiesV1 {
  *
  * @param baseCost: Base cost of the upgrade.
  * @param baseEffect: Base effect of the upgrade.
- * @param costCoefficient3Decimals: Cost coefficient of the upgrade. Cost is multiplied by this value for each level.
  */
 struct UpgradePropertiesV1 {
     uint256 baseCost;
     uint256 baseEffect;
-    uint256 costCoefficient3Decimals;
 }
 
 /**
@@ -60,12 +56,10 @@ struct UpgradePropertiesV1 {
  *
  * @param baseCost: Base cost of the ascension perk.
  * @param baseEffect: Base effect of the ascension perk.
- * @param costCoefficient3Decimals: Cost coefficient of the ascension perk. Cost is multiplied by this value for each level.
  */
 struct AscensionPerkPropertiesV1 {
     uint256 baseCost;
     uint256 baseEffect;
-    uint256 costCoefficient3Decimals;
 }
 
 struct AppStorage {
