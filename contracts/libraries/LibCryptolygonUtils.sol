@@ -57,8 +57,8 @@ library LibCryptolygonUtils {
         );
 
         // Update the player's data
-        s.playersData[msg.sender].linesLastUpdate = playerData
-            .linesLastUpdate
+        s.playersData[msg.sender].currentLines = playerData
+            .currentLines
             .add(newLinesSinceLastUpdate);
         s.playersData[msg.sender].totalLinesThisAscension = playerData
             .totalLinesThisAscension
@@ -66,7 +66,7 @@ library LibCryptolygonUtils {
 
         emit PlayerDataUpdated(
             msg.sender,
-            playerData.linesLastUpdate.add(newLinesSinceLastUpdate),
+            playerData.currentLines.add(newLinesSinceLastUpdate),
             playerData.totalLinesThisAscension
         );
     }
