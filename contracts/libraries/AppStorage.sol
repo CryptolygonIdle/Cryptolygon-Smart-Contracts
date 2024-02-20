@@ -12,7 +12,7 @@ import "../interfaces/ICircle.sol";
  * @param levelOfAscensionPerks: Array of the level of ascension perks for the player.
  * @param polygonsMultiplierUpgrades: Array of the polygons multiplier upgrades for the player.
  * @param timestampLastUpdate: Timestamp of the last update for the player.
- * @param linesLastUpdate: BigNumber of the lines at the last update for the player.
+ * @param currentLines: BigNumber of the lines at the last update for the player.
  * @param totalLinesThisAscension: Total number of lines for the player this ascension.
  * @param totalLinesPreviousAscensions: Total number of lines for the player in previous ascensions.
  * @param numberOfAscensions: Number of ascensions performed by the players.
