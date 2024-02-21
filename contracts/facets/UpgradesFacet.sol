@@ -40,7 +40,7 @@ contract UpgradesFacet is IUpgradesFacet {
      */
     function _buyUpgrade(uint256 upgradeId, uint256 amount) internal {
         // Check if the upgrade can be bought
-        if (amount == 0) {
+        if (amount == 0 || s.upgradesProperties.length <= upgradeId) {
             revert UpgradeNotAllowed(upgradeId, amount);
         }
 

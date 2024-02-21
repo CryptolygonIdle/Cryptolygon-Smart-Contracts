@@ -77,8 +77,8 @@ contract AscensionFacet is IAscensionFacet {
      */
     function _buyAscensionPerk(uint256 perkId, uint256 amount) internal {
         // Check if the ascension perk can be bought
-        if (perkId == 0 || amount == 0) {
-            revert AscensionPerkNotAllowed(perkId, amount);
+        if (amount == 0 || s.ascensionPerksProperties.length <= perkId) {
+            revert InvalidArguments();
         }
 
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
