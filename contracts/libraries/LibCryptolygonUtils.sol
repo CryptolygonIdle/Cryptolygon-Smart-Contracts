@@ -27,7 +27,8 @@ library LibCryptolygonUtils {
         BigNumber memory linesPerSecond = BigNumbers.init(0, false);
 
         for (uint256 i = 1; i < playerData.levelOfPolygons.length - 1; i++) {
-            uint256 basePolygonLinesPerSecond = 2 ** i;
+            uint256 basePolygonLinesPerSecond = s.polygonsProperties[i]
+                .baseLinesPerSecond;
 
             uint256 polygonLevel = playerData.levelOfPolygons[i];
             uint256 totalPolygonLevel = playerData.levelOfPolygons[0];
@@ -38,7 +39,8 @@ library LibCryptolygonUtils {
                 playerData.levelOfUpgrades[0];
 
             uint256 ascensionUpgradesMultiplier = 1 +
-                playerData.levelOfAscensionPerks[0];
+                playerData.levelOfAscensionPerks[0] *
+                (1 + playerData.levelOfUpgrades[3]);
 
             BigNumber memory polygonLinesPerSecond = BigNumbers
                 .init(basePolygonLinesPerSecond, false)
