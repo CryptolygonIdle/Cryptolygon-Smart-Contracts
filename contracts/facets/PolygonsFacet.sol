@@ -29,6 +29,17 @@ contract PolygonsFacet is IPolygonsFacet {
         }
     }
 
+    function startGame() external {
+        if (s.playersData[msg.sender].timestampLastUpdate != 0) {
+            revert GameAlreadyStarted();
+        }
+        s.playersData[msg.sender].timestampLastUpdate = block.timestamp;
+
+        // Set the level of the total polygons and the first polygon to 1
+        s.playersData[msg.sender].levelOfPolygons[0] = 1;
+        s.playersData[msg.sender].totalPolygonsLevel = 1;
+    }
+
     /**
      * @dev Internal function to level up a polygon.
      * @param polygonId The id of the polygon to level up.

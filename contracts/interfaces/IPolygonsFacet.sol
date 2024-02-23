@@ -38,5 +38,25 @@ interface IPolygonsFacet {
         uint256 amountOfLevels
     );
 
-    function levelUpPolygons(uint256[] calldata polygonIds, uint256[] calldata amounts) external;
+    /**
+     * @dev Level up the polygons of the player.
+     * @param polygonIds The IDs of the polygons to level up.
+     * @param amounts The number of levels to level up the polygons.
+     *
+     * Requirements:
+     * - The length of polygonIds and amounts must be the same.
+     * - The length of polygonIds and amounts must be greater than 0.
+     **/
+    function levelUpPolygons(
+        uint256[] calldata polygonIds,
+        uint256[] calldata amounts
+    ) external;
+
+    /**
+     * @dev Start the game for the player.
+     *
+     * Requirements:
+     * - The game must not have started for the player.
+     */
+    function startGame() external;
 }
