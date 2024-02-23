@@ -9,7 +9,7 @@ async function deployDiamond () {
   // Deploy DiamondInit
   // DiamondInit provides a function that is called when the diamond is upgraded or deployed to initialize state variables
   // Read about how the diamondCut function works in the EIP2535 Diamonds standard
-  const DiamondInit = await ethers.getContractFactory('DiamondInit')
+  const DiamondInit = await ethers.getContractFactory('CryptolygonIdleDiamonInit')
   const diamondInit = await DiamondInit.deploy()
   await diamondInit.waitForDeployment()
   console.log('DiamondInit deployed:', diamondInit.target)
@@ -20,7 +20,10 @@ async function deployDiamond () {
   const FacetNames = [
     'DiamondCutFacet',
     'DiamondLoupeFacet',
-    'OwnershipFacet'
+    'OwnershipFacet',
+    'AscensionFacet',
+    'PolygonFacet',
+    'UpgradeFacet',
   ]
   // The `facetCuts` variable is the FacetCut[] that contains the functions to add during diamond deployment
   const facetCuts = []
@@ -49,7 +52,7 @@ async function deployDiamond () {
   }
 
   // deploy Diamond
-  const Diamond = await ethers.getContractFactory('Diamond')
+  const Diamond = await ethers.getContractFactory('CryptolygonIdleDiamond')
   const diamond = await Diamond.deploy(facetCuts, diamondArgs)
   await diamond.waitForDeployment()
   console.log()
