@@ -31,7 +31,7 @@ library LibCryptolygonUtils {
                 .baseLinesPerSecond;
 
             uint256 polygonLevel = playerData.levelOfPolygons[i];
-            uint256 totalPolygonLevel = playerData.levelOfPolygons[0];
+            uint256 totalPolygonLevel = playerData.totalPolygonsLevel;
             uint256 polygonLevelMultiplier = (1 + 2 * (polygonLevel / 50)) *
                 (1 + 5 * (totalPolygonLevel / 500));
 

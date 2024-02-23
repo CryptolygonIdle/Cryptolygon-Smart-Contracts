@@ -40,7 +40,7 @@ contract PolygonsFacet is IPolygonsFacet {
      */
     function _levelUpPolygon(uint256 polygonId, uint256 amount) internal {
         // Check if the polygon can be leveled up
-        if (amount == 0 || polygonId == 0 || s.polygonsProperties.length <= polygonId) {
+        if (amount == 0 || s.polygonsProperties.length <= polygonId) {
             revert InvalidArguments();
         }
 
@@ -54,11 +54,20 @@ contract PolygonsFacet is IPolygonsFacet {
         // Compute the cost of leveling up the polygon
         // Cost = polygonBaseCost * 2**polygonCurrentLevel * (2**amountToBuy - 1)
         // 2 is the cost growth coefficient
-        BigNumber memory cost = BigNumbers.init(s.polygonsProperties[polygonId].baseCost, false)
-            .mul(BigNumbers.init(2, false).pow(playerData.levelOfPolygons[polygonId]))
-            .mul(BigNumbers.init(2, false).pow(amount).sub(BigNumbers.init(1, false)));
-        
-        if(playerData.levelOfUpgrades[1] > 0) {
+        BigNumber memory cost = BigNumbers
+            .init(s.polygonsProperties[polygonId].baseCost, false)
+            .mul(
+                BigNumbers.init(2, false).pow(
+                    playerData.levelOfPolygons[polygonId]
+                )
+            )
+            .mul(
+                BigNumbers.init(2, false).pow(amount).sub(
+                    BigNumbers.init(1, false)
+                )
+            );
+
+        if (playerData.levelOfUpgrades[1] > 0) {
             cost = BigNumbers.div2multiple(cost, playerData.levelOfUpgrades[1]);
         }
 
@@ -68,19 +77,15 @@ contract PolygonsFacet is IPolygonsFacet {
         }
 
         // Consume the lines
-        s.playersData[msg.sender].currentLines = playerData
-            .currentLines
-            .sub(cost);
+        s.playersData[msg.sender].currentLines = playerData.currentLines.sub(
+            cost
+        );
 
         // Level up the polygon
-        s.playersData[msg.sender].levelOfPolygons[polygonId] =
-            playerData.levelOfPolygons[polygonId] +
-            (amount);
+        s.playersData[msg.sender].levelOfPolygons[polygonId] += (amount);
 
-        // Level up the all polygons level
-        s.playersData[msg.sender].levelOfPolygons[0] =
-            playerData.levelOfPolygons[0] +
-            (amount);
+        // Level up the total polygons level
+        s.playersData[msg.sender].totalPolygonsLevel += (amount);
 
         // Emit the PolygonLeveledUp event
         emit PolygonLeveledUp(msg.sender, polygonId, amount);

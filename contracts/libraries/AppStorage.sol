@@ -10,7 +10,8 @@ import "../interfaces/ICircle.sol";
  *
  * @param levelOfPolygons: Array of the level of polygons owned by the player. 0 index is the total level of all polygons.
  * @param levelOfAscensionPerks: Array of the level of ascension perks for the player.
- * @param polygonsMultiplierUpgrades: Array of the polygons multiplier upgrades for the player.
+ * @param levelOfUpgrades: Array of the polygons multiplier upgrades for the player.
+ * @param totalPolygonsLevel: Total level of all polygons owned by the player.
  * @param timestampLastUpdate: Timestamp of the last update for the player.
  * @param currentLines: BigNumber of the lines at the last update for the player.
  * @param totalLinesThisAscension: Total number of lines for the player this ascension.
@@ -21,6 +22,7 @@ struct PlayerDataV1 {
     uint256[] levelOfPolygons;
     uint256[] levelOfAscensionPerks;
     uint256[] levelOfUpgrades;
+    uint256 totalPolygonsLevel;
     uint256 timestampLastUpdate;
     BigNumber currentLines;
     BigNumber totalLinesThisAscension;

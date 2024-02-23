@@ -20,15 +20,23 @@ error PolygonLevelUpNotAllowed(uint256 polygonId, uint256 amountOfLevels);
  */
 error NotEnoughLinesToLevelUp(uint256 polygonId, uint256 amountOfLevels);
 
-interface IPolygonsFacet {
+/**
+ * @dev Error thrown when the game has already started and the player tries to start it again.
+ */
+error GameAlreadyStarted();
 
+interface IPolygonsFacet {
     /**
      * @dev Emitted when a polygon is leveled up.
      * @param player The address of the player.
      * @param polygonId The ID of the polygon.
      * @param amountOfLevels The number of levels gained.
      */
-    event PolygonLeveledUp(address indexed player, uint256 polygonId, uint256 amountOfLevels);
+    event PolygonLeveledUp(
+        address indexed player,
+        uint256 polygonId,
+        uint256 amountOfLevels
+    );
 
     function levelUpPolygons(uint256[] calldata polygonIds, uint256[] calldata amounts) external;
 }
