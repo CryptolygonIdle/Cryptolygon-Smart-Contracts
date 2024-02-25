@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 
-import { getSelectors, FacetCutAction } from './libraries/diamond.js'
+import { getSelectors, FacetCutAction } from './libraries/diamond.ts'
 
 async function deployDiamond() {
     const accounts = await ethers.getSigners()
@@ -12,7 +12,7 @@ async function deployDiamond() {
     const DiamondInit = await ethers.getContractFactory('CryptolygonIdleDiamonInit')
     const diamondInit = await DiamondInit.deploy()
     await diamondInit.waitForDeployment()
-    console.log('DiamondInit deployed:', diamondInit.target)
+    console.log('CryptolygonIdleDiamonInit deployed:', diamondInit.target)
 
     // Deploy facets and set the `facetCuts` variable
     console.log('')

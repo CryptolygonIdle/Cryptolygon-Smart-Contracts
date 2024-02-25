@@ -25,7 +25,7 @@ import {AppStorage, PolygonPropertiesV1, UpgradePropertiesV1, AscensionPerkPrope
 // Adding parameters to the `init` or other functions you add here can make a single deployed
 // DiamondInit contract reusable accross upgrades, and can be used for multiple diamonds.
 
-contract DiamondInit {
+contract CryptolygonIdleDiamonInit {
     AppStorage internal s;
 
     // You can add parameters to this function in order to pass in
