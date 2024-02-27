@@ -1,8 +1,8 @@
 import { ethers } from 'hardhat'
-
+import { Addressable } from 'ethers'
 import { getSelectors, FacetCutAction } from './libraries/diamond.ts'
 
-async function deployDiamond() {
+async function deployDiamond(): Promise<string | Addressable> {
     const accounts = await ethers.getSigners()
     const contractOwner = accounts[0]
 
