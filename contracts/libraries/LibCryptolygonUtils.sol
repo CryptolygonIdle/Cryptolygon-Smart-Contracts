@@ -15,9 +15,9 @@ library LibCryptolygonUtils {
      */
     event PlayerDataUpdated(address indexed player);
 
-    function _updatePlayerData() internal {
+    function _updatePlayerData(address player) internal {
         bytes4 updateFunctionSig = bytes4(
-            keccak256(bytes("updatePlayerData()"))
+            keccak256(bytes("updatePlayerData(address)"))
         );
         LibDiamond.DiamondStorage storage ds;
         bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
@@ -32,7 +32,8 @@ library LibCryptolygonUtils {
 
         // Encode the function call data
         bytes memory encodedFunctionCall = abi.encodeWithSelector(
-            updateFunctionSig
+            updateFunctionSig,
+            player
         );
 
         (bool success, ) = updateFunctionFacet.delegatecall(

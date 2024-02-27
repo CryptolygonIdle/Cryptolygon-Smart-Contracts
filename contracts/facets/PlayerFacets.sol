@@ -21,9 +21,13 @@ contract PlayersFacet {
         BigNumber totalLines
     );
 
-    function updatePlayerData() public {
-        PlayerDataV1 memory playerData = s.playersData[msg.sender];
-        s.playersData[msg.sender].timestampLastUpdate = block.timestamp;
+    /**
+     * @dev Updates the player's data.
+     * @param player The address of the player.
+     */
+    function updatePlayerData(address player) public {
+        PlayerDataV1 memory playerData = s.playersData[player];
+        s.playersData[player].timestampLastUpdate = block.timestamp;
 
         // Compute the player's lines per second
         BigNumber memory linesPerSecond = BigNumbers.init(0, false);
@@ -61,15 +65,15 @@ contract PlayersFacet {
         );
 
         // Update the player's data
-        s.playersData[msg.sender].currentLines = playerData
+        s.playersData[player].currentLines = playerData
             .currentLines
             .add(newLinesSinceLastUpdate);
-        s.playersData[msg.sender].totalLinesThisAscension = playerData
+        s.playersData[player].totalLinesThisAscension = playerData
             .totalLinesThisAscension
             .add(newLinesSinceLastUpdate);
 
         emit PlayerDataUpdated(
-            msg.sender,
+            player,
             playerData.currentLines.add(newLinesSinceLastUpdate),
             playerData.totalLinesThisAscension
         );
