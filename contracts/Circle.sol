@@ -10,11 +10,10 @@ contract Circle is ICircle, ERC20, ERC20Burnable, AccessControl  {
     bytes32 public constant GAME_ROLE = keccak256("GAME_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    constructor(address defaultAdmin, address game)
+    constructor(address defaultAdmin)
         ERC20("Circle", "CCL")
     {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
-        _grantRole(GAME_ROLE, game);
     }
 
     function mint(address to, uint256 amount) public onlyRole(GAME_ROLE) {
