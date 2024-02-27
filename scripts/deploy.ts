@@ -24,7 +24,8 @@ export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]>
         'AscensionFacet',
         'PolygonsFacet',
         'UpgradesFacet',
-        'PlayersFacet'
+        'PlayersFacet',
+        'UtilsFacet',
     ]
     // The `facetCuts` variable is the FacetCut[] that contains the functions to add during diamond deployment
     const facetCuts = []
@@ -43,7 +44,6 @@ export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]>
     const Circle = await ethers.getContractFactory('Circle')
     const circle = await Circle.deploy(contractOwner.address)
     await circle.waitForDeployment()
-    console.log('Circle deployed:', circle.target)
 
     // Creating a function call
     // This call gets executed during deployment and can also be executed in upgrades
@@ -61,8 +61,6 @@ export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]>
     const Diamond = await ethers.getContractFactory('CryptolygonIdleDiamond')
     const diamond = await Diamond.deploy(facetCuts, diamondArgs)
     await diamond.waitForDeployment()
-    console.log()
-    console.log('Diamond deployed:', diamond.target)
 
     // returning the diamond
     return [diamond, circle]
