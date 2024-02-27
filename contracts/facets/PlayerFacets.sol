@@ -78,4 +78,13 @@ contract PlayersFacet {
             playerData.totalLinesThisAscension
         );
     }
+
+    /**
+     * @dev Returns the player's data.
+     * @param player The address of the player.
+     * @return The player's data.
+     */
+    function getPlayerData(address player) public view returns (PlayerDataV1 memory) {
+        return s.playersData[player];
+    }
 }
