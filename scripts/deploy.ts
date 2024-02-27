@@ -42,7 +42,7 @@ async function deployDiamond() {
 
     // Deploy Circle
     const Circle = await ethers.getContractFactory('Circle')
-    const circle = await Circle.deploy()
+    const circle = await Circle.deploy(contractOwner.address)
     await circle.waitForDeployment()
     console.log('Circle deployed:', circle.target)
 
