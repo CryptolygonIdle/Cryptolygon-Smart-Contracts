@@ -1,8 +1,11 @@
 import { ethers } from 'hardhat'
-import { Addressable } from 'ethers'
 import { getSelectors, FacetCutAction } from './libraries/diamond.ts'
+import {
+    CryptolygonIdleDiamond,
+    Circle
+} from "../typechain-types";
 
-async function deployDiamond(): Promise<string | Addressable> {
+export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]> {
     const accounts = await ethers.getSigners()
     const contractOwner = accounts[0]
 
@@ -65,8 +68,8 @@ async function deployDiamond(): Promise<string | Addressable> {
     console.log()
     console.log('Diamond deployed:', diamond.target)
 
-    // returning the address of the diamond
-    return diamond.target
+    // returning the diamond
+    return [diamond, circle]
 }
 
 // We recommend this pattern to be able to use async/await everywhere
