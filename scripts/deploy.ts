@@ -15,11 +15,8 @@ export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]>
     const DiamondInit = await ethers.getContractFactory('CryptolygonIdleDiamonInit')
     const diamondInit = await DiamondInit.deploy()
     await diamondInit.waitForDeployment()
-    console.log('CryptolygonIdleDiamonInit deployed:', diamondInit.target)
 
     // Deploy facets and set the `facetCuts` variable
-    console.log('')
-    console.log('Deploying facets')
     const FacetNames = [
         'DiamondCutFacet',
         'DiamondLoupeFacet',
@@ -35,7 +32,6 @@ export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]>
         const Facet = await ethers.getContractFactory(FacetName)
         const facet = await Facet.deploy()
         await facet.waitForDeployment()
-        console.log(`${FacetName} deployed: ${facet.target}`)
         facetCuts.push({
             facetAddress: facet.target,
             action: FacetCutAction.Add,
