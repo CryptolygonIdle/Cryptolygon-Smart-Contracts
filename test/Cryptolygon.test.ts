@@ -2,28 +2,17 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import {
     CryptolygonIdleDiamond,
-    DiamondCutFacet,
-    DiamondLoupeFacet,
-    OwnershipFacet,
-    PolygonsFacet,
-    UpgradesFacet,
-    AscensionFacet,
     Circle
 } from "../typechain-types";
 
+import { deployDiamond } from "../scripts/deploy.ts"
+
 describe("CryptolygonIdleDiamond", function () {
     let cryptolygonIdleDiamond: CryptolygonIdleDiamond;
-    let ascensionFacet: AscensionFacet;
-    let diamondCutFacet: DiamondCutFacet;
-    let diamondLoupeFacet: DiamondLoupeFacet;
-    let ownershipFacet: OwnershipFacet;
-    let polygonsFacet: PolygonsFacet;
-    let upgradesFacet: UpgradesFacet;
     let Circle: Circle;
 
     beforeEach(async function () {
-        cryptolygonIdleDiamond = await ethers.deployContract("CryptolygonIdleDiamond");
-        await cryptolygonIdleDiamond.waitForDeployment();
+        [cryptolygonIdleDiamond, Circle] = await deployDiamond();
     });
 
     it("should deploy the contract correctly", async function () {
