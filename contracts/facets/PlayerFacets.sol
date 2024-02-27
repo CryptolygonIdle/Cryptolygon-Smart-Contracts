@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {AppStorage, PlayerDataV1} from "../libraries/AppStorage.sol";
 import "../libraries/BigNumber.sol";
 
-contract PlayerFacet {
+contract PlayersFacet {
     using BigNumbers for *;
 
     AppStorage internal s;
