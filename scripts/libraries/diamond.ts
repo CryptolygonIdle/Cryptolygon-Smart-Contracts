@@ -1,21 +1,20 @@
 import { ethers } from "hardhat";
-import { ContractFactory } from "ethers";
+import { BaseContract, FunctionFragment } from "ethers";
 const FacetCutAction = { Add: 0, Replace: 1, Remove: 2 }
 
 // get function selectors from ABI
-function getSelectors(contract: ContractFactory) {
-    const signatures = Object.keys(contract.interface.getFunction())
-    const selectors = signatures.reduce((acc: any, val: any) => {
-        if (val !== 'init(bytes)') {
-            acc.push(contract.interface.getSighash(val))
-        }
-        return acc
-    }, [])
-    selectors.contract = contract
-    selectors.remove = remove
-    selectors.get = get
-    return selectors
-}
+async function getSelectors(contract: BaseContract) {
+    const selectors: string[] = [];
+  
+    contract.interface.forEachFunction((frag: FunctionFragment) => {
+      if (frag.name !== "init" && frag.inputs.length === 1 && frag.inputs[0].type === "bytes") {
+        return;
+      }
+      selectors.push(frag.selector);
+    });
+    
+    return selectors;
+  }
 
 // get function selector from function signature
 function getSelector(func: any) {

@@ -22,8 +22,9 @@ async function deployDiamond() {
         'DiamondLoupeFacet',
         'OwnershipFacet',
         'AscensionFacet',
-        'PolygonFacet',
-        'UpgradeFacet',
+        'PolygonsFacet',
+        'UpgradesFacet',
+        'PlayersFacet'
     ]
     // The `facetCuts` variable is the FacetCut[] that contains the functions to add during diamond deployment
     const facetCuts = []
@@ -35,7 +36,7 @@ async function deployDiamond() {
         facetCuts.push({
             facetAddress: facet.target,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(facet)
+            functionSelectors: await getSelectors(facet)
         })
     }
 
