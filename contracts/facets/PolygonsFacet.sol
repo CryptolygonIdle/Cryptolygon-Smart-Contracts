@@ -19,7 +19,7 @@ contract PolygonsFacet is IPolygonsFacet {
         if (polygonIds.length != amounts.length || polygonIds.length == 0) {
             revert InvalidArguments();
         }
-        LibCryptolygonUtils._updatePlayerData(s);
+        LibCryptolygonUtils._updatePlayerData();
 
         for (uint256 i = 0; i < polygonIds.length; i++) {
             uint256 polygonId = polygonIds[i];

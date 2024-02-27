@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {AppStorage, PlayerDataV1} from "../libraries/AppStorage.sol";
+import {LibDiamond} from "../libraries/LibDiamond.sol";
 import "../libraries/LibCryptolygonUtils.sol";
 
 import "../interfaces/IAscensionFacet.sol";
@@ -19,7 +20,7 @@ contract AscensionFacet is IAscensionFacet {
         if (perkIds.length != amounts.length || perkIds.length == 0) {
             revert InvalidArguments();
         }
-        LibCryptolygonUtils._updatePlayerData(s);
+        LibCryptolygonUtils._updatePlayerData();
 
         for (uint256 i = 0; i < perkIds.length; i++) {
             uint256 perkId = perkIds[i];
@@ -30,7 +31,7 @@ contract AscensionFacet is IAscensionFacet {
     }
 
     function ascend() external {
-        LibCryptolygonUtils._updatePlayerData(s);
+        LibCryptolygonUtils._updatePlayerData();
 
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
 

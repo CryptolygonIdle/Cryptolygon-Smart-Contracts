@@ -2,6 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {AppStorage, PlayerDataV1} from "./AppStorage.sol";
+import { LibDiamond } from "./LibDiamond.sol";
+
 import "./BigNumber.sol";
 
 library LibCryptolygonUtils {
@@ -10,66 +12,33 @@ library LibCryptolygonUtils {
     /**
      * @dev Emitted when player data is updated.
      * @param player The address of the player.
-     * @param lines The number of lines.
-     * @param totalLines The total number of lines.
      */
     event PlayerDataUpdated(
-        address indexed player,
-        BigNumber lines,
-        BigNumber totalLines
+        address indexed player
     );
 
-    function _updatePlayerData(AppStorage storage s) internal {
-        PlayerDataV1 memory playerData = s.playersData[msg.sender];
-        s.playersData[msg.sender].timestampLastUpdate = block.timestamp;
-
-        // Compute the player's lines per second
-        BigNumber memory linesPerSecond = BigNumbers.init(0, false);
-
-        for (uint256 i = 1; i < playerData.levelOfPolygons.length - 1; i++) {
-            uint256 basePolygonLinesPerSecond = s.polygonsProperties[i]
-                .baseLinesPerSecond;
-
-            uint256 polygonLevel = playerData.levelOfPolygons[i];
-            uint256 totalPolygonLevel = playerData.totalPolygonsLevel;
-            uint256 polygonLevelMultiplier = (1 + 2 * (polygonLevel / 50)) *
-                (1 + 5 * (totalPolygonLevel / 500));
-
-            uint256 normalUpgradesMultiplier = 1 +
-                playerData.levelOfUpgrades[0];
-
-            uint256 ascensionUpgradesMultiplier = 1 +
-                playerData.levelOfAscensionPerks[0] *
-                (1 + playerData.levelOfUpgrades[3]);
-
-            BigNumber memory polygonLinesPerSecond = BigNumbers
-                .init(basePolygonLinesPerSecond, false)
-                .mul(BigNumbers.init(polygonLevel, false))
-                .mul(BigNumbers.init(polygonLevelMultiplier, false))
-                .mul(BigNumbers.init(normalUpgradesMultiplier, false))
-                .mul(BigNumbers.init(ascensionUpgradesMultiplier, false));
-
-            linesPerSecond = linesPerSecond.add(polygonLinesPerSecond);
+    function _updatePlayerData() internal {
+        bytes4 updateFunctionSig = bytes4(
+            keccak256(bytes("updatePlayerData()"))
+        );
+        LibDiamond.DiamondStorage storage ds;
+        bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
+        // get diamond storage
+        assembly {
+            ds.slot := position
         }
 
-        // Compute the player's lines
-        uint256 timePassed = block.timestamp - playerData.timestampLastUpdate;
-        BigNumber memory newLinesSinceLastUpdate = linesPerSecond.mul(
-            BigNumbers.init(timePassed, false)
-        );
-
-        // Update the player's data
-        s.playersData[msg.sender].currentLines = playerData
-            .currentLines
-            .add(newLinesSinceLastUpdate);
-        s.playersData[msg.sender].totalLinesThisAscension = playerData
-            .totalLinesThisAscension
-            .add(newLinesSinceLastUpdate);
+        address updateFunctionFacet = ds
+            .facetAddressAndSelectorPosition[updateFunctionSig]
+            .facetAddress;
+        (bool success, ) = updateFunctionFacet.delegatecall("");
+        if (!success) {
+            revert();
+        }
 
         emit PlayerDataUpdated(
-            msg.sender,
-            playerData.currentLines.add(newLinesSinceLastUpdate),
-            playerData.totalLinesThisAscension
+            msg.sender
         );
     }
+
 }
