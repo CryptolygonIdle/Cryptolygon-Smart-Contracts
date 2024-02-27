@@ -19,7 +19,7 @@ contract UpgradesFacet is IUpgradesFacet {
         if (upgradeIds.length != amounts.length || upgradeIds.length == 0) {
             revert InvalidArguments();
         }
-        LibCryptolygonUtils._updatePlayerData();
+        LibCryptolygonUtils._updatePlayerData(msg.sender);
 
         for (uint256 i = 0; i < upgradeIds.length; i++) {
             uint256 upgradeId = upgradeIds[i];

@@ -20,7 +20,7 @@ contract AscensionFacet is IAscensionFacet {
         if (perkIds.length != amounts.length || perkIds.length == 0) {
             revert InvalidArguments();
         }
-        LibCryptolygonUtils._updatePlayerData();
+        LibCryptolygonUtils._updatePlayerData(msg.sender);
 
         for (uint256 i = 0; i < perkIds.length; i++) {
             uint256 perkId = perkIds[i];
@@ -31,7 +31,7 @@ contract AscensionFacet is IAscensionFacet {
     }
 
     function ascend() external {
-        LibCryptolygonUtils._updatePlayerData();
+        LibCryptolygonUtils._updatePlayerData(msg.sender);
 
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
 
