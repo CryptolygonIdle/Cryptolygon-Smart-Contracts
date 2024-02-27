@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {AppStorage, PlayerDataV1} from "./AppStorage.sol";
-import { LibDiamond } from "./LibDiamond.sol";
+import {LibDiamond} from "./LibDiamond.sol";
 
 import "./BigNumber.sol";
 
@@ -13,9 +13,7 @@ library LibCryptolygonUtils {
      * @dev Emitted when player data is updated.
      * @param player The address of the player.
      */
-    event PlayerDataUpdated(
-        address indexed player
-    );
+    event PlayerDataUpdated(address indexed player);
 
     function _updatePlayerData() internal {
         bytes4 updateFunctionSig = bytes4(
@@ -31,14 +29,19 @@ library LibCryptolygonUtils {
         address updateFunctionFacet = ds
             .facetAddressAndSelectorPosition[updateFunctionSig]
             .facetAddress;
-        (bool success, ) = updateFunctionFacet.delegatecall("");
+
+        // Encode the function call data
+        bytes memory encodedFunctionCall = abi.encodeWithSelector(
+            updateFunctionSig
+        );
+
+        (bool success, ) = updateFunctionFacet.delegatecall(
+            encodedFunctionCall
+        );
         if (!success) {
             revert();
         }
 
-        emit PlayerDataUpdated(
-            msg.sender
-        );
+        emit PlayerDataUpdated(msg.sender);
     }
-
 }
