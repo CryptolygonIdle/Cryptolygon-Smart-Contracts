@@ -94,13 +94,59 @@ contract PlayersFacet is IPlayersFacet {
     }
 
     /**
-     * @dev Returns the player's data.
+     * @dev Returns the player's data, updated to the current block.
      * @param player The address of the player.
      * @return The player's data.
      */
     function getPlayerData(
         address player
     ) public view returns (PlayerDataV1 memory) {
+        PlayerDataV1 memory playerData = s.playersData[player];
+
+        // Compute the player's lines per second
+        BigNumber memory linesPerSecond = BigNumbers.init(0, false);
+
+        for (uint256 i = 1; i < playerData.levelOfPolygons.length - 1; i++) {
+            uint256 basePolygonLinesPerSecond = s
+                .polygonsProperties[i]
+                .baseLinesPerSecond;
+
+            uint256 polygonLevel = playerData.levelOfPolygons[i];
+            uint256 totalPolygonLevel = playerData.totalPolygonsLevel;
+            uint256 polygonLevelMultiplier = (1 + 2 * (polygonLevel / 50)) *
+                (1 + 5 * (totalPolygonLevel / 500));
+
+            uint256 normalUpgradesMultiplier = 1 +
+                playerData.levelOfUpgrades[0];
+
+            uint256 ascensionUpgradesMultiplier = 1 +
+                playerData.levelOfAscensionPerks[0] *
+                (1 + playerData.levelOfUpgrades[3]);
+
+            BigNumber memory polygonLinesPerSecond = BigNumbers
+                .init(basePolygonLinesPerSecond, false)
+                .mul(BigNumbers.init(polygonLevel, false))
+                .mul(BigNumbers.init(polygonLevelMultiplier, false))
+                .mul(BigNumbers.init(normalUpgradesMultiplier, false))
+                .mul(BigNumbers.init(ascensionUpgradesMultiplier, false));
+
+            linesPerSecond = linesPerSecond.add(polygonLinesPerSecond);
+        }
+
+        // Compute the player's lines
+        uint256 timePassed = block.timestamp - playerData.timestampLastUpdate;
+        BigNumber memory newLinesSinceLastUpdate = linesPerSecond.mul(
+            BigNumbers.init(timePassed, false)
+        );
+
+        // Update the local player's data
+        playerData.currentLines = playerData.currentLines.add(
+            newLinesSinceLastUpdate
+        );
+        playerData.totalLinesThisAscension = playerData
+            .totalLinesThisAscension
+            .add(newLinesSinceLastUpdate);
+
         return s.playersData[player];
     }
 }
