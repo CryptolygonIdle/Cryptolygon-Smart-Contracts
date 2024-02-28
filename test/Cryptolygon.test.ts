@@ -10,13 +10,17 @@ import {
     PlayersFacet,
     UpgradesFacet,
     UtilsFacet,
-    Circle
+    Circle,
+    TestFacet1,
+    TestFacet2,
 } from "../typechain-types";
 
 import { deployDiamond } from "../scripts/deploy.ts"
 import { getSelectors } from "../scripts/libraries/diamond.ts"
 
 describe("CryptolygonIdleDiamond", function () {
+    let contractOwner: any;
+
     let cryptolygonIdleDiamond: CryptolygonIdleDiamond;
     let AscensionFacet: AscensionFacet;
     let DiamondCutFacet: DiamondCutFacet;
@@ -28,7 +32,12 @@ describe("CryptolygonIdleDiamond", function () {
     let UtilsFacet: UtilsFacet;
     let Circle: Circle;
 
+    let testFacet1: TestFacet1;
+    let testFacet2: TestFacet2;
+
     async function resetDiamondDeploy() {
+        const accounts = await ethers.getSigners()
+        contractOwner = accounts[0];
         [cryptolygonIdleDiamond, Circle] = await deployDiamond();
         AscensionFacet = await ethers.getContractAt("AscensionFacet", cryptolygonIdleDiamond.target);
         DiamondCutFacet = await ethers.getContractAt("DiamondCutFacet", cryptolygonIdleDiamond.target);
@@ -142,6 +151,133 @@ describe("CryptolygonIdleDiamond", function () {
                 expect(storedSelectors).to.deep.equal(expectedSelectors);
             }
 
+        });
+
+        it("should have the correct owner", async function () {
+            const owner = await OwnershipFacet.owner();
+            expect(owner).to.equal(contractOwner.address);
+        });
+    });
+
+    describe("Diamond Administration", function () {
+
+        beforeEach(async function () {
+            await resetDiamondDeploy();
+
+            // Deploy contracts
+            const TestFacet1 = await ethers.getContractFactory("TestFacet1");
+            const TestFacet2 = await ethers.getContractFactory("TestFacet2");
+            testFacet1 = await TestFacet1.deploy();
+            testFacet2 = await TestFacet2.deploy();
+        });
+
+        it("should change the owner correctly", async function () {
+            const newOwner = (await ethers.getSigners())[1];
+            await OwnershipFacet.transferOwnership(newOwner.address);
+            const owner = await OwnershipFacet.owner();
+            expect(owner).to.equal(newOwner.address);
+        });
+
+        it("should add a new facet correctly", async function () {
+            const newFacet = testFacet1;
+            const selectors = await getSelectors(newFacet);
+            await DiamondCutFacet.diamondCut(
+                [{ facetAddress: testFacet1.target, action: 0, functionSelectors: selectors }],
+                ethers.ZeroAddress,
+                "0x"
+            );
+            const facetFunctionSelectors = await DiamondLoupeFacet.facetFunctionSelectors(newFacet.target);
+            expect(facetFunctionSelectors).to.deep.equal(selectors);
+
+            // Check if the new facet is callable
+            const returnTest1 = await testFacet1.test1();
+            const returnTest2 = await testFacet1.test2();
+
+            expect(returnTest1).to.equal(1);
+            expect(returnTest2).to.equal(3);
+        });
+
+        it("should remove a facet correctly", async function () {
+            const newFacet = testFacet1;
+            const selectors = await getSelectors(newFacet);
+            await DiamondCutFacet.diamondCut(
+                [{ facetAddress: testFacet1.target, action: 0, functionSelectors: selectors }],
+                ethers.ZeroAddress,
+                "0x"
+            );
+
+            // Remove the facet
+            await DiamondCutFacet.diamondCut(
+                [{ facetAddress: ethers.ZeroAddress, action: 2, functionSelectors: selectors }],
+                ethers.ZeroAddress,
+                "0x"
+            );
+            const facetFunctionSelectorsAfterRemoval = await DiamondLoupeFacet.facetFunctionSelectors(newFacet.target);
+            expect(facetFunctionSelectorsAfterRemoval).to.have.lengthOf(0);
+        });
+
+        it("should remove a single function from a facet correctly", async function () {
+            const newFacet = testFacet1;
+            const selectors = await getSelectors(newFacet);
+            await DiamondCutFacet.diamondCut(
+                [{ facetAddress: testFacet1.target, action: 0, functionSelectors: selectors }],
+                ethers.ZeroAddress,
+                "0x"
+            );
+
+            // Remove the function
+            await DiamondCutFacet.diamondCut(
+                [{ facetAddress: ethers.ZeroAddress, action: 2, functionSelectors: [selectors[0]] }],
+                ethers.ZeroAddress,
+                "0x"
+            );
+            const facetFunctionSelectorsAfterRemoval = await DiamondLoupeFacet.facetFunctionSelectors(newFacet.target);
+            expect(facetFunctionSelectorsAfterRemoval).to.have.lengthOf(1);
+            expect(facetFunctionSelectorsAfterRemoval[0]).to.equal(selectors[1]);
+        });
+
+        it("should upgrade a facet correctly", async function () {
+            const newFacet = testFacet1;
+            const selectors = await getSelectors(newFacet);
+            await DiamondCutFacet.diamondCut(
+                [{ facetAddress: testFacet1.target, action: 0, functionSelectors: selectors }],
+                ethers.ZeroAddress,
+                "0x"
+            );
+
+            // Upgrade the facet
+            const newFacet2 = testFacet2;
+            const selectors2 = await getSelectors(newFacet2);
+            await DiamondCutFacet.diamondCut(
+                [{ facetAddress: testFacet2.target, action: 1, functionSelectors: selectors2 }],
+                ethers.ZeroAddress,
+                "0x"
+            );
+
+            const facetFunctionSelectorsAfterUpgrade = await DiamondLoupeFacet.facetFunctionSelectors(newFacet2.target);
+            expect(facetFunctionSelectorsAfterUpgrade).to.deep.equal(selectors2);
+
+            // Check if the new facet is callable
+            const returnTest1 = await testFacet2.test1();
+            const returnTest2 = await testFacet2.test2();
+
+            expect(returnTest1).to.equal(10n);
+            expect(returnTest2).to.equal(30n);
+        });
+
+        it("should only allow the owner to change the owner", async function () {
+            const newOwner = (await ethers.getSigners())[1];
+            await expect(OwnershipFacet.connect(newOwner).transferOwnership(newOwner.address)).to.be.revertedWithCustomError(OwnershipFacet, "NotContractOwner");
+        });
+
+        it("should only allow the owner to add a new facet", async function () {
+            const newFacet = testFacet1;
+            const selectors = await getSelectors(newFacet);
+            await expect(DiamondCutFacet.connect((await ethers.getSigners())[1]).diamondCut(
+                [{ facetAddress: testFacet1.target, action: 0, functionSelectors: selectors }],
+                ethers.ZeroAddress,
+                "0x"
+            )).to.be.revertedWithCustomError(OwnershipFacet, "NotContractOwner");
         });
     });
 });
