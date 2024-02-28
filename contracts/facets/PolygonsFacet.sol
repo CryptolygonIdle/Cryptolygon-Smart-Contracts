@@ -58,7 +58,10 @@ contract PolygonsFacet is IPolygonsFacet {
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
 
         // Check if the player has unlocked the previous polygon
-        if (polygonId > 1 && playerData.levelOfPolygons[polygonId - 1] == 0) {
+        if (
+            polygonId > playerData.levelOfPolygons.length ||
+            (polygonId > 1 && playerData.levelOfPolygons[polygonId - 1] == 0)
+        ) {
             revert PolygonLevelUpNotAllowed(polygonId, amount);
         }
 
@@ -93,6 +96,9 @@ contract PolygonsFacet is IPolygonsFacet {
         );
 
         // Level up the polygon
+        if (polygonId == playerData.levelOfPolygons.length) {
+            s.playersData[msg.sender].levelOfPolygons.push(0);
+        }
         s.playersData[msg.sender].levelOfPolygons[polygonId] += (amount);
 
         // Level up the total polygons level
