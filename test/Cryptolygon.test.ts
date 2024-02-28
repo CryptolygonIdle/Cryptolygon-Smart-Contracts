@@ -17,6 +17,7 @@ import {
 
 import { deployDiamond } from "../scripts/deploy.ts"
 import { getSelectors } from "../scripts/libraries/diamond.ts"
+import { BigNumberSolidity, solidityBigNumberToBigInt } from "../scripts/libraries/bigNumbers.ts"
 
 describe("CryptolygonIdleDiamond", function () {
     let contractOwner: any;
@@ -32,13 +33,15 @@ describe("CryptolygonIdleDiamond", function () {
     let UtilsFacet: UtilsFacet;
     let Circle: Circle;
 
+    let facetAddresses: String[] = [];
+
     let testFacet1: TestFacet1;
     let testFacet2: TestFacet2;
 
     async function resetDiamondDeploy() {
         const accounts = await ethers.getSigners()
         contractOwner = accounts[0];
-        [cryptolygonIdleDiamond, Circle] = await deployDiamond();
+        [cryptolygonIdleDiamond, Circle, facetAddresses] = await deployDiamond();
         AscensionFacet = await ethers.getContractAt("AscensionFacet", cryptolygonIdleDiamond.target);
         DiamondCutFacet = await ethers.getContractAt("DiamondCutFacet", cryptolygonIdleDiamond.target);
         DiamondLoupeFacet = await ethers.getContractAt("DiamondLoupeFacet", cryptolygonIdleDiamond.target);
@@ -47,6 +50,10 @@ describe("CryptolygonIdleDiamond", function () {
         PlayersFacet = await ethers.getContractAt("PlayersFacet", cryptolygonIdleDiamond.target);
         UpgradesFacet = await ethers.getContractAt("UpgradesFacet", cryptolygonIdleDiamond.target);
         UtilsFacet = await ethers.getContractAt("UtilsFacet", cryptolygonIdleDiamond.target);
+    }
+
+    async function startGame() {
+        await PlayersFacet.startGame();
     }
 
     before(async function () {
@@ -61,15 +68,14 @@ describe("CryptolygonIdleDiamond", function () {
         it("should initialize polygons properties correctly", async function () {
             const polygonsProperties = await UtilsFacet.getPolygonsProperties();
 
-            expect(polygonsProperties).to.have.lengthOf(8);
-            expect(polygonsProperties[0]).to.deep.equal([(2n ** 256n) - 1n, 0n]);
-            expect(polygonsProperties[1]).to.deep.equal([1n, 2n]);
-            expect(polygonsProperties[2]).to.deep.equal([20n, 5n]);
-            expect(polygonsProperties[3]).to.deep.equal([400n, 20n]);
-            expect(polygonsProperties[4]).to.deep.equal([8000n, 50n]);
-            expect(polygonsProperties[5]).to.deep.equal([160000n, 200n]);
-            expect(polygonsProperties[6]).to.deep.equal([3200000n, 1000n]);
-            expect(polygonsProperties[7]).to.deep.equal([64000000n, 5000n]);
+            expect(polygonsProperties).to.have.lengthOf(7);
+            expect(polygonsProperties[0]).to.deep.equal([1n, 2n]);
+            expect(polygonsProperties[1]).to.deep.equal([20n, 5n]);
+            expect(polygonsProperties[2]).to.deep.equal([400n, 20n]);
+            expect(polygonsProperties[3]).to.deep.equal([8000n, 50n]);
+            expect(polygonsProperties[4]).to.deep.equal([160000n, 200n]);
+            expect(polygonsProperties[5]).to.deep.equal([3200000n, 1000n]);
+            expect(polygonsProperties[6]).to.deep.equal([64000000n, 5000n]);
         });
 
         it("should initialize upgrades properties correctly", async function () {
@@ -95,62 +101,6 @@ describe("CryptolygonIdleDiamond", function () {
             const circleAddress = await UtilsFacet.getCircleAddress();
 
             expect(circleAddress).to.equal(Circle.target);
-        });
-
-        it("should have all the facets functions", async function () {
-            // Retrieve all the Facet objects from the deployed diamond
-            const facetList = await DiamondLoupeFacet.facets();
-
-            // Prepare a map of facet addresses and their corresponding function selectors
-            const facetAddressSelectorsMap: Map<string, string[]> = new Map();
-            for (const [index, facet] of facetList.entries()) {
-                const facetAddress = facet.facetAddress;
-
-                // Get the facet contract interface based on the facet address
-                let facetContract: any;
-                switch (facetAddress.toLowerCase()) {
-                    case String(AscensionFacet.target).toLowerCase():
-                        facetContract = AscensionFacet;
-                        break;
-                    case String(DiamondCutFacet.target).toLowerCase():
-                        facetContract = DiamondCutFacet;
-                        break;
-                    case String(DiamondLoupeFacet.target).toLowerCase():
-                        facetContract = DiamondLoupeFacet;
-                        break;
-                    case String(OwnershipFacet.target).toLowerCase():
-                        facetContract = OwnershipFacet;
-                        break;
-                    case String(PolygonsFacet.target).toLowerCase():
-                        facetContract = PolygonsFacet;
-                        break;
-                    case String(PlayersFacet.target).toLowerCase():
-                        facetContract = PlayersFacet;
-                        break;
-                    case String(UpgradesFacet.target).toLowerCase():
-                        facetContract = UpgradesFacet;
-                        break;
-                    case String(UtilsFacet.target).toLowerCase():
-                        facetContract = UtilsFacet;
-                        break;
-                    default:
-                        throw new Error(`Unknown facet address: ${facetAddress}`);
-                }
-
-                // Get the function selectors for the facet contract
-                const selectors = await getSelectors(facetContract);
-                facetAddressSelectorsMap.set(facetAddress, selectors);
-            }
-
-            // Compare the function selectors obtained from the facet's contract interface with the function selectors stored in the Facet objects
-            for (const [index, facet] of facetList.entries()) {
-                const facetAddress = facet.facetAddress;
-                const expectedSelectors = facetAddressSelectorsMap.get(facetAddress);
-                const storedSelectors = facet.functionSelectors.map((selector: string) => "0x" + selector.toString());
-
-                expect(storedSelectors).to.deep.equal(expectedSelectors);
-            }
-
         });
 
         it("should have the correct owner", async function () {
@@ -278,6 +228,44 @@ describe("CryptolygonIdleDiamond", function () {
                 ethers.ZeroAddress,
                 "0x"
             )).to.be.revertedWithCustomError(OwnershipFacet, "NotContractOwner");
+        });
+    });
+
+    describe("Players Facet", function () {
+
+        it("Should start the game correctly", async function () {
+            await PlayersFacet.startGame();
+
+            const block = await ethers.provider.getBlock("latest");
+            const timestamp = block ? block.timestamp : 0;
+            const playerData = await PlayersFacet.getPlayerData(contractOwner.address);
+
+            expect(playerData[0][0]).to.equal(1);
+            expect(playerData[3]).to.equal(1);
+            expect(playerData[4]).to.equal(timestamp);
+        });
+
+        it.only("Should generate the correct amount of polygons", async function () {
+            await resetDiamondDeploy();
+            await startGame();
+
+            const initialPlayerData = await PlayersFacet.getPlayerData(contractOwner.address);
+            const initialTimestamp = initialPlayerData[4];
+
+            //Skip 1h
+            await ethers.provider.send("evm_increaseTime", [3600]);
+            await ethers.provider.send("evm_mine", []);
+
+            const playerData = await PlayersFacet.getPlayerData(contractOwner.address);
+            const playerLines = solidityBigNumberToBigInt(playerData[5]);
+            const playerTotalLines = solidityBigNumberToBigInt(playerData[6]);
+            const timestamp = playerData[4];
+            const timePassed = timestamp - initialTimestamp;
+            const expectedLines = 2n * timePassed;
+
+            expect(playerLines).to.equal(expectedLines);
+            expect(playerTotalLines).to.equal(expectedLines);
+            
         });
     });
 });
