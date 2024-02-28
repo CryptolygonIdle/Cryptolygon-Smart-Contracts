@@ -36,7 +36,7 @@ contract PolygonsFacet is IPolygonsFacet {
         s.playersData[msg.sender].timestampLastUpdate = block.timestamp;
 
         // Set the level of the total polygons and the first polygon to 1
-        s.playersData[msg.sender].levelOfPolygons[0] = 1;
+        s.playersData[msg.sender].levelOfPolygons.push(1);
         s.playersData[msg.sender].totalPolygonsLevel = 1;
     }
 
