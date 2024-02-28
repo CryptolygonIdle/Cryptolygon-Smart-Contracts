@@ -245,7 +245,7 @@ describe("CryptolygonIdleDiamond", function () {
             expect(playerData[4]).to.equal(timestamp);
         });
 
-        it.only("Should generate the correct amount of polygons", async function () {
+        it("Should generate the correct amount of polygons", async function () {
             await resetDiamondDeploy();
             await startGame();
 
@@ -267,5 +267,95 @@ describe("CryptolygonIdleDiamond", function () {
             expect(playerTotalLines).to.equal(expectedLines);
             
         });
+
+        it("Should update the player's data correctly", async function () {
+            await resetDiamondDeploy();
+            await startGame();
+
+            const initialPlayerData = await PlayersFacet.getPlayerData(contractOwner.address);
+            const initialTimestamp = initialPlayerData[4];
+
+            //Skip 1h
+            await ethers.provider.send("evm_increaseTime", [3600]);
+            await ethers.provider.send("evm_mine", []);
+
+            await PlayersFacet.updatePlayerData(contractOwner.address);
+
+            const playerData = await PlayersFacet.getPlayerData(contractOwner.address);
+            const playerLines = solidityBigNumberToBigInt(playerData[5]);
+            const playerTotalLines = solidityBigNumberToBigInt(playerData[6]);
+            const timestamp = playerData[4];
+            const timePassed = timestamp - initialTimestamp;
+            const expectedLines = 2n * timePassed;
+
+            expect(playerLines).to.equal(expectedLines);
+            expect(playerTotalLines).to.equal(expectedLines);
+        });
+    });
+
+    describe("Polygons Facet", function () {
+
+        function polygonCost(polygonBaseCost: bigint, currentLevel: bigint, amount: bigint): bigint {
+            // Cost = polygonBaseCost * 2**polygonCurrentLevel * (2**amountToBuy - 1)
+            return polygonBaseCost * (2n ** currentLevel) * ((2n ** amount) - 1n);
+        }
+
+        it("Should return the correct cost for a polygon (without upgrades)", async function () {
+            const polygonId = 0;
+            const costOneLevel = solidityBigNumberToBigInt(await PolygonsFacet.getPolygonLevelUpCost(polygonId, 1, 1));
+            const costTwoLevels = solidityBigNumberToBigInt(await PolygonsFacet.getPolygonLevelUpCost(polygonId, 1, 2));
+            const costTenLevels = solidityBigNumberToBigInt(await PolygonsFacet.getPolygonLevelUpCost(polygonId, 1, 10));
+            const costTenLevelsFromTen = solidityBigNumberToBigInt(await PolygonsFacet.getPolygonLevelUpCost(polygonId, 10, 10));
+            
+            const polygonBaseCost = (await UtilsFacet.getPolygonsProperties())[polygonId][0];
+            const currentLevel = 1n;
+            const amountOne = 1n;
+            const amountTwo = 2n;
+            const amountTen = 10n;
+
+            const expectedCostOneLevel = polygonCost(polygonBaseCost, currentLevel, amountOne);
+            const expectedCostTwoLevels = polygonCost(polygonBaseCost, currentLevel, amountTwo);
+            const expectedCostTenLevels = polygonCost(polygonBaseCost, currentLevel, amountTen);
+            const expectedCostTenLevelsFromTen = polygonCost(polygonBaseCost, 10n, amountTen);
+
+            expect(costOneLevel).to.equal(expectedCostOneLevel);
+            expect(costTwoLevels).to.equal(expectedCostTwoLevels);
+            expect(costTenLevels).to.equal(expectedCostTenLevels);
+            expect(costTenLevelsFromTen).to.equal(expectedCostTenLevelsFromTen);
+        });
+
+        it.only("Should perform the level up correctly", async function () {
+            await resetDiamondDeploy();
+            await startGame();
+
+            await ethers.provider.send("evm_increaseTime", [3600]);
+            await ethers.provider.send("evm_mine", []);
+
+            const polygonId = 0;
+            const amount = 2n;
+            const playerData = await PlayersFacet.getPlayerData(contractOwner.address);
+            const playerPolygons = playerData[3];
+            const playerPolygonOneLevel = playerData[0][polygonId];
+
+            expect(playerPolygons).to.equal(1n + amount);
+            expect(playerPolygonOneLevel).to.equal(1n + amount);
+
+        });
+    });
+
+    describe("Upgrades Facet", function () {
+
+    });
+
+    describe("Ascension Facet", function () {
+
+    });
+
+    describe("Utils Facet", function () {
+
+    });
+
+    describe("Circle", function () {
+
     });
 });
