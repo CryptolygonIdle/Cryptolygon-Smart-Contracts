@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {AppStorage, PlayerDataV1} from "../libraries/AppStorage.sol";
+import {AppStorage} from "../libraries/AppStorage.sol";
 import "../libraries/BigNumber.sol";
 
-contract PlayersFacet {
+import "../interfaces/IPlayersFacet.sol";
+
+contract PlayersFacet is IPlayersFacet {
     using BigNumbers for *;
 
     AppStorage internal s;
@@ -21,6 +23,17 @@ contract PlayersFacet {
         BigNumber totalLines
     );
 
+    function startGame() external {
+        if (s.playersData[msg.sender].timestampLastUpdate != 0) {
+            revert GameAlreadyStarted();
+        }
+        s.playersData[msg.sender].timestampLastUpdate = block.timestamp;
+
+        // Set the level of the total polygons and the first polygon to 1
+        s.playersData[msg.sender].levelOfPolygons.push(1);
+        s.playersData[msg.sender].totalPolygonsLevel = 1;
+    }
+
     /**
      * @dev Updates the player's data.
      * @param player The address of the player.
@@ -33,7 +46,8 @@ contract PlayersFacet {
         BigNumber memory linesPerSecond = BigNumbers.init(0, false);
 
         for (uint256 i = 1; i < playerData.levelOfPolygons.length - 1; i++) {
-            uint256 basePolygonLinesPerSecond = s.polygonsProperties[i]
+            uint256 basePolygonLinesPerSecond = s
+                .polygonsProperties[i]
                 .baseLinesPerSecond;
 
             uint256 polygonLevel = playerData.levelOfPolygons[i];
@@ -65,9 +79,9 @@ contract PlayersFacet {
         );
 
         // Update the player's data
-        s.playersData[player].currentLines = playerData
-            .currentLines
-            .add(newLinesSinceLastUpdate);
+        s.playersData[player].currentLines = playerData.currentLines.add(
+            newLinesSinceLastUpdate
+        );
         s.playersData[player].totalLinesThisAscension = playerData
             .totalLinesThisAscension
             .add(newLinesSinceLastUpdate);
@@ -84,7 +98,9 @@ contract PlayersFacet {
      * @param player The address of the player.
      * @return The player's data.
      */
-    function getPlayerData(address player) public view returns (PlayerDataV1 memory) {
+    function getPlayerData(
+        address player
+    ) public view returns (PlayerDataV1 memory) {
         return s.playersData[player];
     }
 }

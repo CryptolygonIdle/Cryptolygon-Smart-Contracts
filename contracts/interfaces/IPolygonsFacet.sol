@@ -20,11 +20,6 @@ error PolygonLevelUpNotAllowed(uint256 polygonId, uint256 amountOfLevels);
  */
 error NotEnoughLinesToLevelUp(uint256 polygonId, uint256 amountOfLevels);
 
-/**
- * @dev Error thrown when the game has already started and the player tries to start it again.
- */
-error GameAlreadyStarted();
-
 interface IPolygonsFacet {
     /**
      * @dev Emitted when a polygon is leveled up.
@@ -52,11 +47,4 @@ interface IPolygonsFacet {
         uint256[] calldata amounts
     ) external;
 
-    /**
-     * @dev Start the game for the player.
-     *
-     * Requirements:
-     * - The game must not have started for the player.
-     */
-    function startGame() external;
 }
