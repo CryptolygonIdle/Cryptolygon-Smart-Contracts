@@ -32,6 +32,13 @@ contract PlayersFacet is IPlayersFacet {
         // Set the level of the total polygons and the first polygon to 1
         s.playersData[msg.sender].levelOfPolygons.push(1);
         s.playersData[msg.sender].totalPolygonsLevel = 1;
+
+        // Set the level of the upgrades and the ascension perks to 0
+        for (uint256 i = 0; i < s.upgradesProperties.length; i++)
+            s.playersData[msg.sender].levelOfUpgrades.push(0);
+
+        for (uint256 i = 0; i < s.ascensionPerksProperties.length; i++)
+            s.playersData[msg.sender].levelOfAscensionPerks.push(0);
     }
 
     /**
@@ -45,7 +52,7 @@ contract PlayersFacet is IPlayersFacet {
         // Compute the player's lines per second
         BigNumber memory linesPerSecond = BigNumbers.init(0, false);
 
-        for (uint256 i = 1; i < playerData.levelOfPolygons.length - 1; i++) {
+        for (uint256 i = 0; i < playerData.levelOfPolygons.length; i++) {
             uint256 basePolygonLinesPerSecond = s
                 .polygonsProperties[i]
                 .baseLinesPerSecond;
@@ -106,7 +113,7 @@ contract PlayersFacet is IPlayersFacet {
         // Compute the player's lines per second
         BigNumber memory linesPerSecond = BigNumbers.init(0, false);
 
-        for (uint256 i = 1; i < playerData.levelOfPolygons.length - 1; i++) {
+        for (uint256 i = 0; i < playerData.levelOfPolygons.length; i++) {
             uint256 basePolygonLinesPerSecond = s
                 .polygonsProperties[i]
                 .baseLinesPerSecond;
@@ -146,7 +153,9 @@ contract PlayersFacet is IPlayersFacet {
         playerData.totalLinesThisAscension = playerData
             .totalLinesThisAscension
             .add(newLinesSinceLastUpdate);
+        
+        playerData.timestampLastUpdate = block.timestamp;
 
-        return s.playersData[player];
+        return playerData;
     }
 }
