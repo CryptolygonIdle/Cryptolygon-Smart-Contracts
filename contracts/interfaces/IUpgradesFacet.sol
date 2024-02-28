@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import { BigNumber } from "../libraries/BigNumber.sol";
+
 /**
  * @dev Error thrown when the arguments are invalid.
  */
@@ -53,5 +55,5 @@ interface IUpgradesFacet {
         uint256 upgradeId,
         uint256 upgradeCurrentLevel,
         uint256 amount
-    ) external view returns (uint256 cost);
+    ) external view returns (BigNumber memory cost);
 }
