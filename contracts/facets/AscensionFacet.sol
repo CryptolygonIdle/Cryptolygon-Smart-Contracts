@@ -67,6 +67,18 @@ contract AscensionFacet is IAscensionFacet {
         s.CIRCLE.mint(msg.sender, circlesToGive * 10 ** 18);
     }
 
+    function getAscensionPerkLevelUpCost(
+        uint256 perkId,
+        uint256 perkCurrentLevel,
+        uint256 amount
+    ) public view returns (uint256 cost) {
+        // Compute the cost of buying the ascension perk
+        // Cost = perkId^perkId * (perkCurrentLevel + 1) * amountToBuy
+        cost = s.ascensionPerksProperties[perkId].baseCost
+            * (perkCurrentLevel + 1)
+            * (amount);
+    }
+
     /**
      * @dev Internal function to buy an ascension perk.
      * @param perkId The id of the ascension perk to buy.
@@ -89,10 +101,11 @@ contract AscensionFacet is IAscensionFacet {
             revert AscensionPerkNotAllowed(perkId, amount);
         }
 
-        // Compute the cost of buying the ascension perk
-        uint256 cost = perkId ** perkId *
-            (playerData.levelOfAscensionPerks[perkId] + 1) *
-            amount;
+        uint256 cost = getAscensionPerkLevelUpCost(
+            perkId,
+            playerData.levelOfAscensionPerks[perkId],
+            amount
+        );
 
         // Check if the player has enough circles to buy the ascension perk
         if (s.CIRCLE.balanceOf(msg.sender) < cost) {

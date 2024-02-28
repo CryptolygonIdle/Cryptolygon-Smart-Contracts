@@ -58,4 +58,16 @@ interface IAscensionFacet {
      * @dev Function to perform an ascension.
      */
     function ascend() external;
+
+    /**
+     * @dev Get the cost of leveling up an ascension perk.
+     * @param perkId The ID of the perk.
+     * @param perkCurrentLevel The current level of the perk.
+     * @param amount The amount of levels to buy the perk.
+     */
+    function getAscensionPerkLevelUpCost(
+        uint256 perkId,
+        uint256 perkCurrentLevel,
+        uint256 amount
+    ) external view returns (uint256 cost);
 }

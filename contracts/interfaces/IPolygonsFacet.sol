@@ -47,4 +47,16 @@ interface IPolygonsFacet {
         uint256[] calldata amounts
     ) external;
 
+    /**
+     * @dev Get the cost of leveling up a polygon.
+     * @param polygonId The ID of the polygon.
+     * @param polygonCurrentLevel The current level of the polygon.
+     * @param amount The amount of levels to level up the polygon.
+     */
+    function getPolygonLevelUpCost(
+        uint256 polygonId,
+        uint256 polygonCurrentLevel,
+        uint256 amount
+    ) external view returns (uint256 cost);
+
 }

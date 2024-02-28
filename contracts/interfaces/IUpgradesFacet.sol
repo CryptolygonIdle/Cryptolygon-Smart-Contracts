@@ -33,8 +33,25 @@ interface IUpgradesFacet {
         uint256 amountOfLevels
     );
 
+    /**
+     * @dev Function to buy upgrades in batch.
+     * @param upgradeIds List of upgrade ids to buy.
+     * @param amounts List of amounts to buy the upgrades.
+     */
     function buyUpgrades(
         uint256[] calldata upgradeIds,
         uint256[] calldata amounts
     ) external;
+
+    /**
+     * @dev Get the cost of leveling up an upgrade.
+     * @param upgradeId The ID of the upgrade.
+     * @param upgradeCurrentLevel The current level of the upgrade.
+     * @param amount The amount of levels to level up the upgrade.
+     */
+    function getUpgradeLevelUpCost(
+        uint256 upgradeId,
+        uint256 upgradeCurrentLevel,
+        uint256 amount
+    ) external view returns (uint256 cost);
 }

@@ -29,6 +29,28 @@ contract PolygonsFacet is IPolygonsFacet {
         }
     }
 
+    function getPolygonLevelUpCost(
+        uint256 polygonId,
+        uint256 polygonCurrentLevel,
+        uint256 amount
+    ) public view returns (BigNumber memory cost) {
+        // Compute the cost of leveling up the polygon
+        // Cost = polygonBaseCost * 2**polygonCurrentLevel * (2**amountToBuy - 1)
+        // 2 is the cost growth coefficient
+        cost = BigNumbers
+            .init(s.polygonsProperties[polygonId].baseCost, false)
+            .mul(
+                BigNumbers.init(2, false).pow(
+                    polygonCurrentLevel
+                )
+            )
+            .mul(
+                BigNumbers.init(2, false).pow(amount).sub(
+                    BigNumbers.init(1, false)
+                )
+            );
+    }
+
     /**
      * @dev Internal function to level up a polygon.
      * @param polygonId The id of the polygon to level up.
@@ -54,21 +76,11 @@ contract PolygonsFacet is IPolygonsFacet {
             revert PolygonLevelUpNotAllowed(polygonId, amount);
         }
 
-        // Compute the cost of leveling up the polygon
-        // Cost = polygonBaseCost * 2**polygonCurrentLevel * (2**amountToBuy - 1)
-        // 2 is the cost growth coefficient
-        BigNumber memory cost = BigNumbers
-            .init(s.polygonsProperties[polygonId].baseCost, false)
-            .mul(
-                BigNumbers.init(2, false).pow(
-                    playerData.levelOfPolygons[polygonId]
-                )
-            )
-            .mul(
-                BigNumbers.init(2, false).pow(amount).sub(
-                    BigNumbers.init(1, false)
-                )
-            );
+        BigNumber memory cost = getPolygonLevelUpCost(
+            polygonId,
+            playerData.levelOfPolygons[polygonId],
+            amount
+        );
 
         if (playerData.levelOfUpgrades[1] > 0) {
             cost = BigNumbers.div2multiple(cost, playerData.levelOfUpgrades[1]);

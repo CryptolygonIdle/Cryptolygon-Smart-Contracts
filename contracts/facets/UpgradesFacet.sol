@@ -29,6 +29,28 @@ contract UpgradesFacet is IUpgradesFacet {
         }
     }
 
+    function getUpgradeLevelUpCost(
+        uint256 upgradeId,
+        uint256 upgradeCurrentLevel,
+        uint256 amount
+    ) public view returns (BigNumber memory cost) {
+        // Compute the cost of buying the upgrade
+        // Cost = upgradeBaseCost * 2**upgradeCurrentLevel * (2**amountToBuy - 1)
+        // 2 is the cost growth coefficient
+        cost = BigNumbers
+            .init(s.upgradesProperties[upgradeId].baseCost, false)
+            .mul(
+                BigNumbers.init(2, false).pow(
+                    upgradeCurrentLevel
+                )
+            )
+            .mul(
+                BigNumbers.init(2, false).pow(amount).sub(
+                    BigNumbers.init(1, false)
+                )
+            );
+    }
+
     /**
      * @dev Internal function to buy an upgrade.
      * @param upgradeId The id of the upgrade to buy.
@@ -46,12 +68,11 @@ contract UpgradesFacet is IUpgradesFacet {
 
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
 
-        // Compute the cost of buying the upgrade
-        // Cost = upgradeBaseCost * 2**upgradeCurrentLevel * (2**amountToBuy - 1)
-        // 2 is the cost growth coefficient
-        BigNumber memory cost = BigNumbers.init(s.upgradesProperties[upgradeId].baseCost, false)
-            .mul(BigNumbers.init(2, false).pow(playerData.levelOfUpgrades[upgradeId]))
-            .mul(BigNumbers.init(2, false).pow(amount).sub(BigNumbers.init(1, false)));
+        BigNumber memory cost = getUpgradeLevelUpCost(
+            upgradeId,
+            playerData.levelOfUpgrades[upgradeId],
+            amount
+        );
 
         // Check if the player has enough lines to buy the upgrade
         if (playerData.currentLines.lt(cost)) {
