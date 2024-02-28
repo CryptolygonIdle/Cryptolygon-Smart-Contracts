@@ -5,7 +5,7 @@ import {
     Circle
 } from "../typechain-types";
 
-export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]> {
+export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle, String[]]> {
     const accounts = await ethers.getSigners()
     const contractOwner = accounts[0]
 
@@ -29,6 +29,7 @@ export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]>
     ]
     // The `facetCuts` variable is the FacetCut[] that contains the functions to add during diamond deployment
     const facetCuts = []
+    const facetAddresses: string[] = []
     for (const FacetName of FacetNames) {
         const Facet = await ethers.getContractFactory(FacetName)
         const facet = await Facet.deploy()
@@ -38,6 +39,7 @@ export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]>
             action: FacetCutAction.Add,
             functionSelectors: await getSelectors(facet)
         })
+        facetAddresses.push(String(facet.target))
     }
 
     // Deploy Circle
@@ -63,7 +65,7 @@ export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle]>
     await diamond.waitForDeployment()
 
     // returning the diamond
-    return [diamond, circle]
+    return [diamond, circle, facetAddresses]
 }
 
 // We recommend this pattern to be able to use async/await everywhere
