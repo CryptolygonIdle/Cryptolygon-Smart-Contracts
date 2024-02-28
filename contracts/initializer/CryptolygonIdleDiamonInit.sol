@@ -54,10 +54,6 @@ contract CryptolygonIdleDiamonInit {
 
     function setupPolygonProperties() internal {
         s.polygonsProperties.push(PolygonPropertiesV1({
-            baseCost: 2**256 - 1,
-            baseLinesPerSecond: 0
-        }));
-        s.polygonsProperties.push(PolygonPropertiesV1({
             baseCost: 1,
             baseLinesPerSecond: 2
         }));
