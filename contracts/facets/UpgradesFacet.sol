@@ -37,6 +37,10 @@ contract UpgradesFacet is IUpgradesFacet {
         // Compute the cost of buying the upgrade
         // Cost = upgradeBaseCost * 2**upgradeCurrentLevel * (2**amountToBuy - 1)
         // 2 is the cost growth coefficient
+        if (amount == 0 || s.upgradesProperties.length <= upgradeId) {
+            revert InvalidArguments();
+        }
+
         cost = BigNumbers
             .init(s.upgradesProperties[upgradeId].baseCost, false)
             .mul(
@@ -63,7 +67,7 @@ contract UpgradesFacet is IUpgradesFacet {
     function _buyUpgrade(uint256 upgradeId, uint256 amount) internal {
         // Check if the upgrade can be bought
         if (amount == 0 || s.upgradesProperties.length <= upgradeId) {
-            revert UpgradeNotAllowed(upgradeId, amount);
+            revert InvalidArguments();
         }
 
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
