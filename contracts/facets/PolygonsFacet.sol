@@ -76,9 +76,14 @@ contract PolygonsFacet is IPolygonsFacet {
             revert PolygonLevelUpNotAllowed(polygonId, amount);
         }
 
+        // Add the polygon to the player's data if it doesn't exist
+        if (polygonId == playerData.levelOfPolygons.length) {
+            s.playersData[msg.sender].levelOfPolygons.push(0);
+        }
+
         BigNumber memory cost = getPolygonLevelUpCost(
             polygonId,
-            playerData.levelOfPolygons[polygonId],
+            s.playersData[msg.sender].levelOfPolygons[polygonId],
             amount
         );
 
@@ -97,9 +102,6 @@ contract PolygonsFacet is IPolygonsFacet {
         );
 
         // Level up the polygon
-        if (polygonId == playerData.levelOfPolygons.length) {
-            s.playersData[msg.sender].levelOfPolygons.push(0);
-        }
         s.playersData[msg.sender].levelOfPolygons[polygonId] += (amount);
 
         // Level up the total polygons level
