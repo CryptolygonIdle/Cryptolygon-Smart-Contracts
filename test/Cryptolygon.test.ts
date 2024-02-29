@@ -324,27 +324,156 @@ describe("CryptolygonIdleDiamond", function () {
             expect(costTenLevelsFromTen).to.equal(expectedCostTenLevelsFromTen);
         });
 
-        it.only("Should perform the level up correctly", async function () {
+        it("Should perform the level up correctly", async function () {
             await resetDiamondDeploy();
             await startGame();
 
             await ethers.provider.send("evm_increaseTime", [3600]);
             await ethers.provider.send("evm_mine", []);
 
+            // Test the level up of the first polygon
             const polygonId = 0;
             const amount = 2n;
+            await PolygonsFacet.levelUpPolygons([polygonId], [amount]);
+
             const playerData = await PlayersFacet.getPlayerData(contractOwner.address);
             const playerPolygons = playerData[3];
             const playerPolygonOneLevel = playerData[0][polygonId];
 
             expect(playerPolygons).to.equal(1n + amount);
             expect(playerPolygonOneLevel).to.equal(1n + amount);
+            
+            // Test the level up of the second polygon
+            await PolygonsFacet.levelUpPolygons([polygonId + 1], [amount]);
+
+            const playerData2 = await PlayersFacet.getPlayerData(contractOwner.address);
+            const playerPolygons2 = playerData2[3];
+            const playerPolygonTwoLevel = playerData2[0][polygonId + 1];
+
+            expect(playerPolygons2).to.equal(1n + amount + amount);
+            expect(playerPolygonTwoLevel).to.equal(amount);
+
+            // Test the level up of the third polygon
+            await PolygonsFacet.levelUpPolygons([polygonId + 2], [amount]);
+
+            const playerData3 = await PlayersFacet.getPlayerData(contractOwner.address);
+            const playerPolygons3 = playerData3[3];
+            const playerPolygonThreeLevel = playerData3[0][polygonId + 2];
+
+            expect(playerPolygons3).to.equal(1n + amount + amount + amount);
+            expect(playerPolygonThreeLevel).to.equal(amount);
+
+        });
+
+        it("Should revert if the player doesn't have enough lines", async function () {
+            await resetDiamondDeploy();
+            await startGame();
+
+            await expect(PolygonsFacet.levelUpPolygons([0], [2])).to.be.revertedWithCustomError(PolygonsFacet, "NotEnoughLinesToLevelUp");
+        });
+
+        it("Should revert if arguments are wrong", async function () {
+            await resetDiamondDeploy();
+            await startGame();
+
+            await ethers.provider.send("evm_increaseTime", [3600]);
+            await ethers.provider.send("evm_mine", []);
+
+            await expect(PolygonsFacet.levelUpPolygons([0,0], [1])).to.be.revertedWithCustomError(PolygonsFacet, "InvalidArguments");
+            await expect(PolygonsFacet.levelUpPolygons([0], [1,1])).to.be.revertedWithCustomError(PolygonsFacet, "InvalidArguments");
+            await expect(PolygonsFacet.levelUpPolygons([0], [0])).to.be.revertedWithCustomError(PolygonsFacet, "InvalidArguments");
+            await expect(PolygonsFacet.levelUpPolygons([20], [0])).to.be.revertedWithCustomError(PolygonsFacet, "InvalidArguments");
+
+            await expect(PolygonsFacet.levelUpPolygons([2], [1])).to.be.revertedWithCustomError(PolygonsFacet, "PolygonLevelUpNotAllowed");
 
         });
     });
 
     describe("Upgrades Facet", function () {
 
+        function upgradeCost(upgradeBaseCost: bigint, currentLevel: bigint, amount: bigint): bigint {
+            // Cost = upgradeBaseCost * 2**currentLevel * (2**amountToBuy - 1)
+            return upgradeBaseCost * (2n ** currentLevel) * ((2n ** amount) - 1n);
+        }
+
+        it("Should return the correct cost for an upgrade", async function () {
+            const upgradeId = 0;
+            const costOneLevel = solidityBigNumberToBigInt(await UpgradesFacet.getUpgradeLevelUpCost(upgradeId, 1, 1));
+            const costTwoLevels = solidityBigNumberToBigInt(await UpgradesFacet.getUpgradeLevelUpCost(upgradeId, 1, 2));
+            const costTenLevels = solidityBigNumberToBigInt(await UpgradesFacet.getUpgradeLevelUpCost(upgradeId, 1, 10));
+            const costTenLevelsFromTen = solidityBigNumberToBigInt(await UpgradesFacet.getUpgradeLevelUpCost(upgradeId, 10, 10));
+            
+            const upgradeBaseCost = (await UtilsFacet.getUpgradesProperties())[upgradeId][0];
+            const currentLevel = 1n;
+            const amountOne = 1n;
+            const amountTwo = 2n;
+            const amountTen = 10n;
+
+            const expectedCostOneLevel = upgradeCost(upgradeBaseCost, currentLevel, amountOne);
+            const expectedCostTwoLevels = upgradeCost(upgradeBaseCost, currentLevel, amountTwo);
+            const expectedCostTenLevels = upgradeCost(upgradeBaseCost, currentLevel, amountTen);
+            const expectedCostTenLevelsFromTen = upgradeCost(upgradeBaseCost, 10n, amountTen);
+
+            expect(costOneLevel).to.equal(expectedCostOneLevel);
+            expect(costTwoLevels).to.equal(expectedCostTwoLevels);
+            expect(costTenLevels).to.equal(expectedCostTenLevels);
+            expect(costTenLevelsFromTen).to.equal(expectedCostTenLevelsFromTen);
+        });
+
+        it("Should perform the level up correctly", async function () {
+            await resetDiamondDeploy();
+            await startGame();
+
+            await ethers.provider.send("evm_increaseTime", [3600]);
+            await ethers.provider.send("evm_mine", []);
+
+            // Test the level up of the first upgrade
+            const upgradeId = 0;
+            const amount = 2n;
+            await UpgradesFacet.buyUpgrades([upgradeId], [amount]);
+
+            const playerData = await PlayersFacet.getPlayerData(contractOwner.address);
+            const playerUpgrades = playerData[2][upgradeId];
+
+            expect(playerUpgrades).to.equal(amount);
+            
+            // Test the level up of the second upgrade
+            await UpgradesFacet.buyUpgrades([upgradeId + 1], [amount]);
+
+            const playerData2 = await PlayersFacet.getPlayerData(contractOwner.address);
+            const playerUpgrades2 = playerData2[2][upgradeId + 1];
+
+            expect(playerUpgrades2).to.equal(amount);
+
+            // Test the level up of the third upgrade
+            await UpgradesFacet.buyUpgrades([upgradeId + 2], [amount]);
+
+            const playerData3 = await PlayersFacet.getPlayerData(contractOwner.address);
+            const playerUpgrades3 = playerData3[2][upgradeId + 2];
+
+            expect(playerUpgrades3).to.equal(amount);
+        });
+
+        it("Should revert if the player doesn't have enough lines", async function () {
+            await resetDiamondDeploy();
+            await startGame();
+
+            await expect(UpgradesFacet.buyUpgrades([0], [4])).to.be.revertedWithCustomError(UpgradesFacet, "NotEnoughLinesToBuyUpgrade");
+        });
+
+        it("Should revert if arguments are wrong", async function () {
+            await resetDiamondDeploy();
+            await startGame();
+
+            await ethers.provider.send("evm_increaseTime", [3600]);
+            await ethers.provider.send("evm_mine", []);
+
+            await expect(UpgradesFacet.buyUpgrades([0,0], [1])).to.be.revertedWithCustomError(UpgradesFacet, "InvalidArguments");
+            await expect(UpgradesFacet.buyUpgrades([0], [1,1])).to.be.revertedWithCustomError(UpgradesFacet, "InvalidArguments");
+            await expect(UpgradesFacet.buyUpgrades([0], [0])).to.be.revertedWithCustomError(UpgradesFacet, "InvalidArguments");
+            await expect(UpgradesFacet.buyUpgrades([20], [0])).to.be.revertedWithCustomError(UpgradesFacet, "InvalidArguments");
+
+        });
     });
 
     describe("Ascension Facet", function () {
