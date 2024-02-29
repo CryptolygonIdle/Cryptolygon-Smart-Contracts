@@ -303,6 +303,7 @@ library BigNumbers {
         BigNumber memory a, 
         uint e
     ) internal view returns(BigNumber memory){
+        if (e == 0) return one();
         return modexp(a, init(e, false), _powModulus(a, e));
     }
 
