@@ -451,7 +451,7 @@ library BigNumbers {
     function log2(
         BigNumber memory a
     ) internal pure returns(uint256){
-        require(!a.neg && !isZero(a));
+        require(!a.neg && !isZero(a.val));
         return uint256(bytes32(abi.encodePacked(bitLength(a)))) - 1;
     }
 
