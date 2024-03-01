@@ -617,12 +617,4 @@ describe("CryptolygonIdleDiamond", function () {
 
         });
     });
-
-    describe("Utils Facet", function () {
-
-    });
-
-    describe("Circle", function () {
-
-    });
 });
