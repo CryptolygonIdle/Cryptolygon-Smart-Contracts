@@ -19,4 +19,8 @@ contract Circle is ICircle, ERC20, ERC20Burnable, AccessControl  {
     function mint(address to, uint256 amount) public onlyRole(GAME_ROLE) {
         _mint(to, amount);
     }
+
+    function allowGameToSpend(address owner) public onlyRole(GAME_ROLE) {
+        _approve(owner, msg.sender, type(uint256).max);
+    }
 }
