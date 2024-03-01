@@ -109,6 +109,7 @@ contract AscensionFacet is IAscensionFacet {
                 s.ascensionPerksProperties[perkId].baseCost) *
             (perkCurrentLevel + (amount + 1) / 2) *
             amount;
+        cost = cost * 10 ** 18;
     }
 
     /**
