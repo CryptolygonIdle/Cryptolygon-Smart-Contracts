@@ -40,8 +40,15 @@ contract AscensionFacet is IAscensionFacet {
         // Reset the player's data
         delete s.playersData[msg.sender].levelOfPolygons;
         delete s.playersData[msg.sender].levelOfUpgrades;
-        delete s.playersData[msg.sender].levelOfAscensionPerks;
 
+        // Add the first polygon to the player
+        s.playersData[msg.sender].levelOfPolygons.push(1);
+
+        // Add the upgrades to the player and set them to level 0
+        for (uint256 i = 0; i < s.upgradesProperties.length; i++) {
+            s.playersData[msg.sender].levelOfUpgrades.push(0);
+        }
+        s.playersData[msg.sender].totalPolygonsLevel = 1;
         s.playersData[msg.sender].currentLines = BigNumbers.init(0, false);
         s.playersData[msg.sender].totalLinesThisAscension = BigNumbers.init(
             0,
