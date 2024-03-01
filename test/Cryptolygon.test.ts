@@ -18,6 +18,12 @@ import {
 import { deployDiamond } from "../scripts/deploy.ts"
 import { getSelectors } from "../scripts/libraries/diamond.ts"
 import { BigNumberSolidity, solidityBigNumberToBigInt } from "../scripts/libraries/bigNumbers.ts"
+import { PlayerDataV1Struct } from "../typechain-types/contracts/interfaces/IPlayersFacet.ts";
+
+function polygonCost(polygonBaseCost: bigint, currentLevel: bigint, amount: bigint): bigint {
+    // Cost = polygonBaseCost * 2**polygonCurrentLevel * (2**amountToBuy - 1)
+    return polygonBaseCost * (2n ** currentLevel) * ((2n ** amount) - 1n);
+}
 
 describe("CryptolygonIdleDiamond", function () {
     let contractOwner: any;
@@ -295,11 +301,6 @@ describe("CryptolygonIdleDiamond", function () {
 
     describe("Polygons Facet", function () {
 
-        function polygonCost(polygonBaseCost: bigint, currentLevel: bigint, amount: bigint): bigint {
-            // Cost = polygonBaseCost * 2**polygonCurrentLevel * (2**amountToBuy - 1)
-            return polygonBaseCost * (2n ** currentLevel) * ((2n ** amount) - 1n);
-        }
-
         it("Should return the correct cost for a polygon (without upgrades)", async function () {
             const polygonId = 0;
             const costOneLevel = solidityBigNumberToBigInt(await PolygonsFacet.getPolygonLevelUpCost(polygonId, 1, 1));
@@ -480,7 +481,7 @@ describe("CryptolygonIdleDiamond", function () {
 
         function ascensionCost(ascensionPerkId: bigint, currentLevel: bigint, amount: bigint): bigint {
             // CostNLevels = perkId^perkId * (perkCurrentLevel + 1) + perkId^perkId * (perkCurrentLevel + 2) + ... + perkId^perkId * (perkCurrentLevel + N) = perkId^perkId * (N*perkCurrentLevel + N*(N+1)/2)
-            return ascensionPerkId ** ascensionPerkId * amount * (currentLevel + (amount + 1n) / 2n);
+            return ascensionPerkId ** ascensionPerkId * amount * (currentLevel + (amount + 1n) / 2n) * (10n ** 18n);
         }
 
         function ascensionCircleToGive(totalLinesThisAscension: bigint, totalLinesPreviousAscensions: bigint): bigint {
@@ -499,8 +500,36 @@ describe("CryptolygonIdleDiamond", function () {
             else {
                 circleToGive = Math.max(0, Math.log2(Number(totalLinesPreviousAscensions + totalLinesThisAscension)) - minimumLinesLog2) - Math.log2(Number(totalLinesPreviousAscensions));
             }
-            return BigInt(Math.floor(circleToGive) * 10**18);
+            return BigInt(Math.floor(circleToGive) * 10 ** 18);
 
+        }
+
+        async function simulateGame(timeInDays: number) {
+
+            const polygonsProperties = await UtilsFacet.getPolygonsProperties();
+
+            for (let i = 0; i < timeInDays; i++) {
+                ethers.provider.send("evm_increaseTime", [3600 * 24]);
+                ethers.provider.send("evm_mine", []);
+
+                // Compute the amount of buyable polygons
+                const playerData = await PlayersFacet.getPlayerData(contractOwner.address);
+                const currentLines = solidityBigNumberToBigInt(playerData[5]);
+                const lengthLevelOfPolygons = (playerData[0]).length + 1 < polygonsProperties.length ? (playerData[0]).length : polygonsProperties.length - 1;
+
+                for (let j = 0; j < lengthLevelOfPolygons + 1; j++) {
+                    const polygonLevel = j == lengthLevelOfPolygons ? 0n : playerData[0][j];
+
+                    let temp = (currentLines * ((1n * 10000n) / (BigInt(lengthLevelOfPolygons) + 2n - BigInt(j))) / (10000n * polygonsProperties[j][0] * (2n ** polygonLevel))) + 1n;
+                    let maxBuyAmount = Math.floor(Math.log2(Number(temp)));
+
+                    if (maxBuyAmount - 1 > 0) {
+                        try {
+                            await PolygonsFacet.levelUpPolygons([j], [BigInt(maxBuyAmount - 1)]);
+                        } catch (error) {}
+                    }
+                }
+            }
         }
 
         it("Should return the correct cost for an ascension perk", async function () {
@@ -527,13 +556,44 @@ describe("CryptolygonIdleDiamond", function () {
             expect(costTenLevelsFromTen).to.equal(expectedCostTenLevelsFromTen);
         });
 
-        it.only("Should ascend correctly", async function () {
+        it("Should buy the ascension perk correctly", async function () {
             await resetDiamondDeploy();
             await startGame();
+            await simulateGame(1);
 
-            await ethers.provider.send("evm_increaseTime", [2**38]);
+            await ethers.provider.send("evm_increaseTime", [2**35]);
             await ethers.provider.send("evm_mine", []);
 
+            await AscensionFacet.ascend();
+
+            const playerCircleBefore = await Circle.balanceOf(contractOwner.address);
+
+            const ascensionPerksProperties = await UtilsFacet.getAscensionPerksProperties();
+            const perkCost1 = ascensionPerksProperties[0][0] * 10n**18n;
+            const perkCost2 = ascensionPerksProperties[1][0] * 10n**18n;
+            
+            const ascensionId1 = 0;
+            const ascensionId2 = 1;
+            const amount = 1n;
+            await AscensionFacet.buyAscensionPerks([ascensionId1, ascensionId2], [amount, amount]);
+
+            const playerCircleAfter = await Circle.balanceOf(contractOwner.address);
+            const playerData = await PlayersFacet.getPlayerData(contractOwner.address);
+            const playerPerks1 = playerData[1][ascensionId1];
+            const playerPerks2 = playerData[1][ascensionId2];
+
+            expect(playerPerks1).to.equal(amount);
+            expect(playerPerks2).to.equal(amount);
+            expect(playerCircleAfter).to.equal(playerCircleBefore - perkCost1 - perkCost2);
+        });
+
+        it("Should ascend correctly", async function () {
+            await resetDiamondDeploy();
+            await startGame();
+            await simulateGame(5);
+            
+            await ethers.provider.send("evm_increaseTime", [2**35]);
+            await ethers.provider.send("evm_mine", []);
             // Get the player's data before the ascension
             const playerDataBefore = await PlayersFacet.getPlayerData(contractOwner.address);
             const playerTotalLinesThisAscension = solidityBigNumberToBigInt(playerDataBefore[6]);
@@ -547,9 +607,13 @@ describe("CryptolygonIdleDiamond", function () {
             const playerDataAfter = await PlayersFacet.getPlayerData(contractOwner.address);
             const playerTotalLinesThisAscensionAfter = solidityBigNumberToBigInt(playerDataAfter[6]);
             const playerCircles = await Circle.balanceOf(contractOwner.address);
+            const ascensionCount = playerDataAfter[8];
+            const playerPolygons = playerDataAfter[0];
 
             expect(playerTotalLinesThisAscensionAfter).to.equal(0n);
             expect(playerCircles).to.equal(expectedCircleToGive);
+            expect(ascensionCount).to.equal(1n);
+            expect(playerPolygons).to.deep.equal([1n]);
 
         });
     });
