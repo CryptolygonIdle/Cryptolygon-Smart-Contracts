@@ -6,7 +6,7 @@ export interface BigNumberSolidity {
     bitlen: bigint;
 }
 
-export function solidityBigNumberToBigInt(bn: BigNumberSolidity): BigInt {
+export function solidityBigNumberToBigInt(bn: BigNumberSolidity): bigint {
     const normalizedVal = ethers.hexlify(ethers.zeroPadValue(bn.val, 32 * Math.ceil(bn.val.length / 32)));
     const value = BigInt(normalizedVal);
     return bn.neg ? -value : value;
