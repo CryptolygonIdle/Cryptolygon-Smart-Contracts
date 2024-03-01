@@ -33,6 +33,8 @@ contract AscensionFacet is IAscensionFacet {
     function ascend() external {
         LibCryptolygonUtils._updatePlayerData(msg.sender);
 
+        uint256 minimumLinesToAscendLog2 = 35;
+
         PlayerDataV1 memory playerData = s.playersData[msg.sender];
 
         // Reset the player's data
@@ -52,19 +54,39 @@ contract AscensionFacet is IAscensionFacet {
             playerData.numberOfAscensions +
             1;
 
-        // Emit the Ascended event
-        emit Ascended(msg.sender);
-
         // Compute the number of circles to give to the player
         // Log2(totalLinesPreviousAscensions + totalLinesThisAscension) - Log2(totalLinesPreviousAscensions)
-        uint256 circlesToGive = BigNumbers.log2(
-            playerData.totalLinesPreviousAscensions.add(
-                playerData.totalLinesThisAscension
+        uint256 circlesToGive = 0;
+        if (
+            playerData.totalLinesThisAscension.lt(
+                BigNumbers.init(2 ** minimumLinesToAscendLog2, false)
             )
-        ) - (BigNumbers.log2(playerData.totalLinesPreviousAscensions));
-
+        ) {
+            revert AscensionNotAllowed();
+        }
+        if (playerData.totalLinesPreviousAscensions.val.isZero()) {
+            circlesToGive =
+                BigNumbers.log2(playerData.totalLinesThisAscension) -
+                minimumLinesToAscendLog2;
+        } else {
+            circlesToGive =
+                BigNumbers.log2(
+                    playerData.totalLinesPreviousAscensions.add(
+                        playerData.totalLinesThisAscension
+                    )
+                ) -
+                (BigNumbers.log2(playerData.totalLinesPreviousAscensions)) -
+                minimumLinesToAscendLog2;
+        }
         // Mint and give the player the circles
         s.CIRCLE.mint(msg.sender, circlesToGive * 10 ** 18);
+
+        // Emit the Ascended event
+        emit Ascended(
+            msg.sender,
+            playerData.numberOfAscensions + 1,
+            circlesToGive * 10 ** 18
+        );
     }
 
     function getAscensionPerkLevelUpCost(
@@ -73,10 +95,13 @@ contract AscensionFacet is IAscensionFacet {
         uint256 amount
     ) public view returns (uint256 cost) {
         // Compute the cost of buying the ascension perk
-        // Cost = perkId^perkId * (perkCurrentLevel + 1) * amountToBuy
-        cost = s.ascensionPerksProperties[perkId].baseCost
-            * (perkCurrentLevel + 1)
-            * (amount);
+        // CostOneLevel = perkId^perkId * (perkCurrentLevel + 1)
+        // CostNLevels = perkId^perkId * amountN * (perkCurrentLevel + (N+1)/2)
+        cost =
+            (s.ascensionPerksProperties[perkId].baseCost **
+                s.ascensionPerksProperties[perkId].baseCost) *
+            (perkCurrentLevel + (amount + 1) / 2) *
+            amount;
     }
 
     /**

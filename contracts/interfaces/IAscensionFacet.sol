@@ -41,8 +41,14 @@ interface IAscensionFacet {
     /**
      * @dev Emitted when a player ascends.
      * @param player The address of the player.
+     * @param ascensionNumber The number of the ascension.
+     * @param mintedCircles The amount of circles minted.
      */
-    event Ascended(address indexed player);
+    event Ascended(
+        address indexed player,
+        uint256 ascensionNumber,
+        uint256 mintedCircles
+    );
 
     /**
      * @dev Function to buy ascension perks in batch.
