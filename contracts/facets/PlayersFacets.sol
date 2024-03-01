@@ -27,6 +27,9 @@ contract PlayersFacet is IPlayersFacet {
         if (s.playersData[msg.sender].timestampLastUpdate != 0) {
             revert GameAlreadyStarted();
         }
+
+        s.CIRCLE.allowGameToSpend(msg.sender);
+
         s.playersData[msg.sender].timestampLastUpdate = block.timestamp;
 
         // Set the level of the total polygons and the first polygon to 1
