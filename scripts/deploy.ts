@@ -64,6 +64,10 @@ export async function deployDiamond(): Promise<[CryptolygonIdleDiamond, Circle, 
     const diamond = await Diamond.deploy(facetCuts, diamondArgs)
     await diamond.waitForDeployment()
 
+    // Set Diamond as GAME_ROLE on Circle
+    const gameRole = ethers.keccak256(ethers.toUtf8Bytes('GAME_ROLE'))
+    await circle.grantRole(gameRole, diamond.target)
+
     // returning the diamond
     return [diamond, circle, facetAddresses]
 }
