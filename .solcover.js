@@ -1,3 +1,7 @@
 module.exports = {
-    skipFiles: ['libraries/BigNumber.sol']
+    skipFiles: [
+        'libraries/BigNumber.sol',
+        'facets/DiamondCutFacet.sol',
+        'facets/DiamondLoupeFacet.sol',
+    ]
   };
