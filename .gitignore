@@ -400,3 +400,4 @@ FodyWeavers.xsd
 # Hardhat
 typechain-types/
 cache/
+coverage/
